@@ -37,6 +37,14 @@ class GameEngine(private val random: Random = Random.Default) {
         return eliminate(marked, id, now, "$who left the game")
     }
 
+    /** Marks a player as connected or not (dropped connection or reconnect). */
+    fun setConnected(s: GameState, id: String, connected: Boolean): GameState {
+        val p = s.player(id) ?: return s
+        if (p.connected == connected) return s
+        return bump(s.copy(players = s.players.map { if (it.id == id) it.copy(connected = connected) else it },
+            notice = if (connected) "${p.name} is back" else "${p.name} lost connection"))
+    }
+
     // ---------- intents ----------
 
     fun apply(s: GameState, playerId: String, intent: Intent, now: Long): Outcome {
