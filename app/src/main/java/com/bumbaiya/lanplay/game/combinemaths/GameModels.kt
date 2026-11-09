@@ -73,6 +73,8 @@ data class GameState(
     val notice: String = "",
     /** Goes up by one on every change so clients can ignore stale updates. */
     val seq: Long = 0,
+    /** The host's clock when this was sent. Phones' clocks differ, so timers use this to line up. */
+    val stamp: Long = 0,
 ) {
     val targetValue: Long? get() = target.takeIf { it.isNotEmpty() }?.joinToString("")?.toLongOrNull()
     fun player(id: String) = players.firstOrNull { it.id == id }

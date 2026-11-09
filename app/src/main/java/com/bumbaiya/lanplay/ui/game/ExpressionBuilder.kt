@@ -54,6 +54,12 @@ fun ExpressionBuilder(
     modifier: Modifier = Modifier,
     onHit: () -> Unit = {},
     penaltyMs: Long = 2000,
+    /** When set, Submit hands the expression to this (the host judges it) instead of checking locally. */
+    onSubmit: ((String) -> Unit)? = null,
+    submitLabel: String = "Submit",
+    /** Shows the running result under the row. Off by default: the game is about mental maths. */
+    liveResult: Boolean = false,
+    enabled: Boolean = true,
 ) {
     var drag by remember { mutableStateOf<Drag?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -133,8 +139,9 @@ fun ExpressionBuilder(
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
-                    enabled = !locked,
+                    enabled = !locked && enabled,
                     onClick = {
+                        if (onSubmit != null) { onSubmit(state.expression()); locked = true; message = null; return@Button }
                         val r = ExpressionEvaluator.evaluate(state.expression(), engineHand())
                         if (r is EvalResult.Value && r.value.toString() == target.toString()) {
                             message = null
@@ -148,11 +155,15 @@ fun ExpressionBuilder(
                         }
                     },
                     modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-                ) { Text(if (locked) "Wait..." else "Submit", style = MaterialTheme.typography.titleMedium) }
+                ) { Text(if (locked) "Wait..." else submitLabel, style = MaterialTheme.typography.titleMedium) }
                 OutlinedButton(
                     onClick = { state.clear(); message = null },
                     modifier = Modifier.heightIn(min = 52.dp),
                 ) { Text("Clear") }
+            }
+            if (liveResult && state.slots.isNotEmpty()) {
+                val r = ExpressionEvaluator.evaluate(state.expression(), engineHand())
+                if (r is EvalResult.Value) Text("= ${r.value}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             }
             message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) }
 

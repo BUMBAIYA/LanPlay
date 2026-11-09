@@ -39,6 +39,10 @@ class GameClient(private val scope: CoroutineScope) {
     private val outbox = Channel<ClientMessage>(Channel.UNLIMITED)
     private var job: Job? = null
     @Volatile private var closed = false
+    @Volatile private var clockOffset = 0L
+
+    /** The host's current time, as best we can tell. Use this (not the phone clock) for timers. */
+    fun serverNow(): Long = System.currentTimeMillis() + clockOffset
 
     private val _state = MutableStateFlow<GameState?>(null)
     val state: StateFlow<GameState?> = _state
@@ -94,6 +98,7 @@ class GameClient(private val scope: CoroutineScope) {
 
     /** Ignores out-of-date snapshots that arrive after newer ones. */
     private fun accept(s: GameState) {
+        if (s.stamp > 0) clockOffset = s.stamp - System.currentTimeMillis()
         val cur = _state.value
         if (cur == null || s.seq >= cur.seq) _state.value = s
     }

@@ -119,8 +119,9 @@ class HostServer(
             seatTokens[token] = id
         }
         sessions[id] = session
+        current = current!!.copy(stamp = clock())
         _state.value = current
-        send(session, ServerMessage.Welcome(id, token, current!!))
+        send(session, ServerMessage.Welcome(id, token, current))
         broadcast(current, except = id)
         id
     }
@@ -142,7 +143,7 @@ class HostServer(
         if (next != s) publish(next)
     }
 
-    private suspend fun publish(s: GameState) { _state.value = s; broadcast(s, except = null) }
+    private suspend fun publish(s: GameState) { val stamped = s.copy(stamp = clock()); _state.value = stamped; broadcast(stamped, except = null) }
 
     private suspend fun broadcast(s: GameState, except: String?) {
         for ((id, session) in sessions) if (id != except) send(session, ServerMessage.State(s))

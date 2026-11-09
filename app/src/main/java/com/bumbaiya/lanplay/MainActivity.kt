@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.bumbaiya.lanplay.ui.theme.LanPlayTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.bumbaiya.lanplay.platform.Session
 import com.bumbaiya.lanplay.ui.screens.LanPlayApp
 
 class MainActivity : ComponentActivity() {
@@ -16,7 +19,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LanPlayTheme {
+            val theme by Session.settings.theme.collectAsState()
+            LanPlayTheme(themeMode = theme) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     androidx.compose.foundation.layout.Box(Modifier.padding(innerPadding)) { LanPlayApp() }
                 }
