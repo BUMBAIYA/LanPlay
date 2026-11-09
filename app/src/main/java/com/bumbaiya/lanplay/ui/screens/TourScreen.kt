@@ -1,6 +1,10 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -94,15 +98,15 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            if (step > 0) OutlinedButton(onClick = { forward = false; step-- }, modifier = Modifier.heightIn(min = 52.dp)) { Text("Back") }
+            if (step > 0) OutlinedButton(onClick = { forward = false; step-- }, modifier = Modifier.heightIn(min = 52.dp)) { IconLabel(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
             Button(
                 enabled = !Steps[step].needsAction || done,
                 onClick = { if (last) onBack() else { forward = true; step++ } },
                 modifier = Modifier.weight(1f).heightIn(min = 52.dp),
             ) { Text(if (last) "Start playing" else "Next", style = MaterialTheme.typography.titleMedium) }
         }
-        if (Steps[step].needsAction && !done) TextButton(onClick = { forward = true; step++ }) { Text("Skip this step", color = MaterialTheme.lanPlayColors.accentText) }
-        if (last) OutlinedButton(onClick = onFullRules, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Read the full rules") }
+        if (Steps[step].needsAction && !done) TextButton(onClick = { forward = true; step++ }) { IconLabel(Icons.AutoMirrored.Filled.ArrowForward, "Skip this step", color = MaterialTheme.lanPlayColors.accentText) }
+        if (last) OutlinedButton(onClick = onFullRules, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { IconLabel(Icons.Filled.Info, "Read the full rules") }
     }
 }
 
@@ -121,8 +125,8 @@ private fun DrawTargetDemo(onDone: () -> Unit) {
     }
     if (!stopped) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(enabled = drawn < 3, onClick = { drawn++ }, modifier = Modifier.heightIn(min = 52.dp)) { Text("Draw a card") }
-            OutlinedButton(enabled = drawn > 0, onClick = { stopped = true; onDone() }, modifier = Modifier.heightIn(min = 52.dp)) { Text("Stop here") }
+            Button(enabled = drawn < 3, onClick = { drawn++ }, modifier = Modifier.heightIn(min = 52.dp)) { IconLabel(Icons.Filled.Add, "Draw a card") }
+            OutlinedButton(enabled = drawn > 0, onClick = { stopped = true; onDone() }, modifier = Modifier.heightIn(min = 52.dp)) { IconLabel(Icons.Filled.Check, "Stop here") }
         }
     } else {
         Text("The target is ${deck.take(drawn).joinToString("")}.", style = MaterialTheme.typography.titleMedium)

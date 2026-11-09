@@ -1,6 +1,9 @@
 package com.bumbaiya.lanplay.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -51,10 +54,10 @@ fun SectionLabel(text: String) = Text(
 )
 
 @Composable
-fun BackLink(onClick: () -> Unit, label: String = "< Back") = TextButton(
+fun BackLink(onClick: () -> Unit, label: String = "Back") = TextButton(
     onClick = onClick,
     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText),
-) { Text(label) }
+) { IconLabel(Icons.AutoMirrored.Filled.ArrowBack, label) }
 
 /** A label on the left and its control on the right. Every setting in the app uses this. */
 @Composable
@@ -79,3 +82,20 @@ fun StepperRow(label: String, value: String, enabled: Boolean, onMinus: () -> Un
             OutlinedButton(onClick = onPlus, enabled = enabled, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp), modifier = Modifier.widthIn(min = 40.dp)) { Text("+") }
         }
     }
+
+/** A button label with a small icon in front, so buttons read at a glance. */
+@androidx.compose.runtime.Composable
+fun IconLabel(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    style: androidx.compose.ui.text.TextStyle = androidx.compose.material3.LocalTextStyle.current,
+    color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified,
+) {
+    androidx.compose.foundation.layout.Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        androidx.compose.material3.Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+        Text(text, style = style, color = color)
+    }
+}

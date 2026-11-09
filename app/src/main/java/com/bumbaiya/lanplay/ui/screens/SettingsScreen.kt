@@ -1,6 +1,10 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.FilterChip
@@ -29,7 +33,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     val haptics by settings.haptics.collectAsState()
     ScreenColumn {
         BackLink(onBack)
-        Text("Settings", style = MaterialTheme.typography.headlineMedium)
+        IconLabel(Icons.Filled.Settings, "Settings", style = MaterialTheme.typography.headlineMedium)
         SectionLabel("Your name")
         OutlinedTextField(
             value = name, onValueChange = { settings.setName(it.take(16)) }, singleLine = true,

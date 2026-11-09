@@ -1,6 +1,10 @@
 package com.bumbaiya.lanplay.ui.game
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -155,11 +159,11 @@ fun ExpressionBuilder(
                         }
                     },
                     modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-                ) { Text(if (locked) "Wait..." else submitLabel, style = MaterialTheme.typography.titleMedium) }
+                ) { IconLabel(Icons.Filled.Check, if (locked) "Wait..." else submitLabel, style = MaterialTheme.typography.titleMedium) }
                 OutlinedButton(
                     onClick = { state.clear(); message = null },
                     modifier = Modifier.heightIn(min = 52.dp),
-                ) { Text("Clear") }
+                ) { IconLabel(Icons.Filled.Close, "Clear") }
             }
             if (liveResult && state.slots.isNotEmpty()) {
                 val r = ExpressionEvaluator.evaluate(state.expression(), engineHand())

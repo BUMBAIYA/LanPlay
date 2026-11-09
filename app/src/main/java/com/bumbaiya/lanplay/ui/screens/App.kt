@@ -1,6 +1,10 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -76,7 +80,7 @@ private fun GameFlow(client: GameClient) {
     when {
         s == null -> ScreenColumn {
             Text(if (status is ConnectionStatus.Failed) (status as ConnectionStatus.Failed).reason else "Connecting...", style = MaterialTheme.typography.titleLarge)
-            OutlinedButton(onClick = { Session.leave() }) { Text("Cancel") }
+            OutlinedButton(onClick = { Session.leave() }) { IconLabel(Icons.Filled.Close, "Cancel") }
         }
         s.phase == Phase.Lobby -> LobbyScreen(client, s, onLeave = { Session.leave() })
         else -> TableScreen(client, s, onLeave = { Session.leave() })
@@ -91,7 +95,7 @@ private fun GamesScreen(onOpen: () -> Unit, onSettings: () -> Unit) {
     ScreenColumn {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("LanPlay", style = MaterialTheme.typography.headlineLarge)
-            TextButton(onClick = onSettings, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText)) { Text("Settings") }
+            TextButton(onClick = onSettings, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText)) { IconLabel(Icons.Filled.Settings, "Settings") }
         }
         Text(
             "Games for the room you're in. One hotspot, no internet, no accounts.",
@@ -124,19 +128,19 @@ private fun GameMenuScreen(onBack: () -> Unit, onSolo: () -> Unit, onHost: () ->
         BackLink(onBack)
         Text("Combine Maths", style = MaterialTheme.typography.headlineMedium)
         Button(onClick = onTour, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
-            Text("Interactive tour", style = MaterialTheme.typography.titleMedium)
+            IconLabel(Icons.Filled.Star, "Interactive tour", style = MaterialTheme.typography.titleMedium)
         }
         OutlinedButton(onClick = onHowTo, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
-            Text("Full rules", style = MaterialTheme.typography.titleMedium)
+            IconLabel(Icons.Filled.Info, "Full rules", style = MaterialTheme.typography.titleMedium)
         }
         Button(onClick = onHost, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text("Host a game", style = MaterialTheme.typography.titleMedium)
+            IconLabel(Icons.Filled.Home, "Host a game", style = MaterialTheme.typography.titleMedium)
         }
         OutlinedButton(onClick = onJoin, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text("Join a game", style = MaterialTheme.typography.titleMedium)
+            IconLabel(Icons.Filled.Person, "Join a game", style = MaterialTheme.typography.titleMedium)
         }
         OutlinedButton(onClick = onSolo, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text("Play solo", style = MaterialTheme.typography.titleMedium)
+            IconLabel(Icons.Filled.PlayArrow, "Play solo", style = MaterialTheme.typography.titleMedium)
         }
     }
 }

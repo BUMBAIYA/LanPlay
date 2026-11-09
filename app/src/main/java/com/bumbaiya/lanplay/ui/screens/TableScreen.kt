@@ -1,6 +1,10 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -93,8 +97,8 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                 if (phase.drawerId == myId) {
                     Text("You were picked to draw the target. Stop whenever you like: 1, 2 or 3 cards.")
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedButton(enabled = phase.digits.size < 3, onClick = { client.send(Intent.DrawTargetCard) }) { Text("Draw a target card") }
-                        Button(enabled = phase.digits.isNotEmpty(), onClick = { client.send(Intent.StopTarget) }) { Text("Stop here") }
+                        OutlinedButton(enabled = phase.digits.size < 3, onClick = { client.send(Intent.DrawTargetCard) }) { IconLabel(Icons.Filled.Add, "Draw a target card") }
+                        Button(enabled = phase.digits.isNotEmpty(), onClick = { client.send(Intent.StopTarget) }) { IconLabel(Icons.Filled.Check, "Stop here") }
                     }
                 } else Text("$drawer is drawing the target...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -143,8 +147,8 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
             SectionLabel(if (finished != null) "Series over" else "Round over")
             if (finished != null) Text("${state.player(finished.winnerId)?.name} wins the series!", style = MaterialTheme.typography.headlineMedium)
             if (isAdmin) {
-                if (finished == null) Button(onClick = { client.send(Intent.NextRound) }, Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Next round", style = MaterialTheme.typography.titleMedium) }
-                OutlinedButton(onClick = { client.send(Intent.BackToLobby) }, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Back to lobby") }
+                if (finished == null) Button(onClick = { client.send(Intent.NextRound) }, Modifier.fillMaxWidth().heightIn(min = 56.dp)) { IconLabel(Icons.Filled.PlayArrow, "Next round", style = MaterialTheme.typography.titleMedium) }
+                OutlinedButton(onClick = { client.send(Intent.BackToLobby) }, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { IconLabel(Icons.AutoMirrored.Filled.ArrowBack, "Back to lobby") }
             } else Text("Waiting for the admin...", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -153,7 +157,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
         onDismissRequest = { confirmLeave = false },
         title = { Text("Leave the game?") },
         text = { Text(if (isAdmin) "You are the host. Leaving ends the game for everyone." else "You can rejoin using the room ID until the next round starts.") },
-        confirmButton = { TextButton(onClick = { confirmLeave = false; onLeave() }) { Text("Leave") } },
+        confirmButton = { TextButton(onClick = { confirmLeave = false; onLeave() }) { IconLabel(Icons.AutoMirrored.Filled.ExitToApp, "Leave") } },
         dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text("Stay") } },
     )
 }
@@ -181,7 +185,7 @@ private fun TurnsSection(
             onSubmit = { expr -> client.send(Intent.Catch(catching, expr)); setCatching(null) },
             submitLabel = "Catch!", penaltyMs = 0,
         )
-        TextButton(onClick = { setCatching(null) }) { Text("Cancel") }
+        TextButton(onClick = { setCatching(null) }) { IconLabel(Icons.Filled.Close, "Cancel") }
         return
     }
 
@@ -202,8 +206,8 @@ private fun TurnsSection(
     if (!myTurn) { Text("Plan your move. All cards are visible to everyone.", color = MaterialTheme.colorScheme.onSurfaceVariant); return }
 
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        OutlinedButton(enabled = !phase.hasDrawn, onClick = { client.send(Intent.DrawCard(number = true)); Feedback.draw() }) { Text("Draw number") }
-        OutlinedButton(enabled = !phase.hasDrawn, onClick = { client.send(Intent.DrawCard(number = false)); Feedback.draw() }) { Text("Draw operator") }
+        OutlinedButton(enabled = !phase.hasDrawn, onClick = { client.send(Intent.DrawCard(number = true)); Feedback.draw() }) { IconLabel(Icons.Filled.Add, "Draw number") }
+        OutlinedButton(enabled = !phase.hasDrawn, onClick = { client.send(Intent.DrawCard(number = false)); Feedback.draw() }) { IconLabel(Icons.Filled.Add, "Draw operator") }
     }
     ExpressionBuilder(
         state = builder, engineHand = { builder.allCards().toEngineHand() }, target = state.targetValue ?: 0,
@@ -211,6 +215,6 @@ private fun TurnsSection(
         penaltyMs = state.settings.penaltySeconds * 1000L, liveResult = state.settings.showLiveResult,
     )
     OutlinedButton(enabled = phase.hasDrawn, onClick = { client.send(Intent.Pass) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
-        Text(if (phase.hasDrawn) "Pass" else "Draw a card to pass")
+        IconLabel(Icons.AutoMirrored.Filled.ArrowForward, if (phase.hasDrawn) "Pass" else "Draw a card to pass")
     }
 }

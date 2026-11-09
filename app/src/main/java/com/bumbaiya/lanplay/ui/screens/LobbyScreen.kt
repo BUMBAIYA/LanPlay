@@ -1,6 +1,10 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -70,8 +74,8 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                 }
             }
         }
-        if (mine?.ready == true) OutlinedButton(onClick = { client.send(Intent.SetReady(false)) }, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("I'm not ready") }
-        else Button(onClick = { client.send(Intent.SetReady(true)) }, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("I'm ready", style = MaterialTheme.typography.titleMedium) }
+        if (mine?.ready == true) OutlinedButton(onClick = { client.send(Intent.SetReady(false)) }, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { IconLabel(Icons.Filled.Close, "I'm not ready") }
+        else Button(onClick = { client.send(Intent.SetReady(true)) }, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { IconLabel(Icons.Filled.Check, "I'm ready", style = MaterialTheme.typography.titleMedium) }
 
         HorizontalDivider()
         SectionLabel(if (isAdmin) "Game settings" else "Game settings (set by the admin)")

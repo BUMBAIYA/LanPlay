@@ -1,6 +1,10 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,7 +66,7 @@ fun SoloScreen(onBack: () -> Unit) {
 
     ScreenColumn {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = onBack, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText)) { Text("< Back") }
+            TextButton(onClick = onBack, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText)) { IconLabel(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
             if (phase != SoloPhase.Setup) {
                 Text("Score $score   ${secondsLeft}s", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 10.dp))
             }
@@ -112,8 +116,8 @@ fun SoloScreen(onBack: () -> Unit) {
                     },
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(onClick = { state.addToHand(pool.drawNumber()) }) { Text("Draw number") }
-                    OutlinedButton(onClick = { state.addToHand(pool.drawOperator()) }) { Text("Draw operator") }
+                    OutlinedButton(onClick = { state.addToHand(pool.drawNumber()) }) { IconLabel(Icons.Filled.Add, "Draw number") }
+                    OutlinedButton(onClick = { state.addToHand(pool.drawOperator()) }) { IconLabel(Icons.Filled.Add, "Draw operator") }
                 }
             }
             SoloPhase.Over -> {

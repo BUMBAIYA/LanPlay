@@ -1,6 +1,10 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import android.widget.Toast
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +46,7 @@ fun HostScreen(onBack: () -> Unit) {
     val error by Session.error.collectAsState()
     ScreenColumn {
         BackLink(onBack)
-        Text("Host a game", style = MaterialTheme.typography.headlineMedium)
+        IconLabel(Icons.Filled.Home, "Host a game", style = MaterialTheme.typography.headlineMedium)
         Text(
             "Turn on your phone's hotspot first. Friends join its Wi-Fi, then enter the room ID or scan the QR code you'll see next.",
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -78,7 +82,7 @@ fun JoinScreen(onBack: () -> Unit) {
 
     ScreenColumn {
         BackLink(onBack)
-        Text("Join a game", style = MaterialTheme.typography.headlineMedium)
+        IconLabel(Icons.Filled.Person, "Join a game", style = MaterialTheme.typography.headlineMedium)
         Text(
             "Connect to the host's hotspot, then enter the room ID shown on their screen.",
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
