@@ -12,6 +12,23 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.bumbaiya.lanplay.ui.components.BigButton
+import com.bumbaiya.lanplay.ui.components.SectionLabel
+import com.bumbaiya.lanplay.ui.components.DI
+import com.bumbaiya.lanplay.ui.components.DIcon
+import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,9 +82,19 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
     var forward by remember { mutableStateOf(true) }
     val last = step == Steps.lastIndex
 
-    ScreenColumn {
-        BackLink(onBack)
-        LinearProgressIndicator(progress = { (step + 1f) / Steps.size }, modifier = Modifier.fillMaxWidth())
+    ScreenColumn(gap = 18.dp) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Box(Modifier.offset(x = (-10).dp).size(44.dp).clickable(onClick = { if (step > 0) { forward = false; step-- } else onBack() }), contentAlignment = Alignment.Center) { DIcon(DI.Back) }
+            Text("Step ${step + 1} of ${Steps.size}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(Modifier.heightIn(min = 44.dp).widthIn(min = 44.dp).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
+                Text("Skip", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Steps.indices.forEach { i ->
+                Box(Modifier.weight(1f).height(6.dp).background(if (i <= step) MaterialTheme.lanPlayColors.accentText else MaterialTheme.lanPlayColors.cardBorder, RoundedCornerShape(3.dp)))
+            }
+        }
         AnimatedContent(
             targetState = step,
             transitionSpec = {
@@ -76,37 +103,46 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
             },
             label = "tour-step",
         ) { s ->
-            androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 val st = Steps[s]
-                Text(st.title, style = MaterialTheme.typography.headlineMedium)
-                Text(st.text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(st.title, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 30.sp)
+                    Text(st.text, fontSize = 16.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 when (s) {
                     1 -> DrawTargetDemo { done = true }
                     2 -> TiltPractice { done = true }
-                    3 -> Practice(
-                        listOf(num(1, "3"), num(2, "4"), plus(3)), 12,
-                        "Flip + to ×. Then 3 × 4.",
-                    ) { done = true }
-                    4 -> Practice(listOf(num(1, "4"), num(2, "3"), num(3, "0"), plus(4)), 64, "Drag the 3 onto the 4, then add + 0.") { done = true }
+                    3 -> Practice(listOf(num(1, "3"), num(2, "4"), plus(3)), 12, "Tap 3, then +, then 4. Tap the + in your row to flip it to ×.") { done = true }
+                    4 -> Practice(listOf(num(1, "4"), num(2, "3"), num(3, "0"), plus(4)), 64, "Drag the 3 onto the 4, then tap + and 0.") { done = true }
                     5 -> Practice(
                         listOf(num(1, "2"), num(2, "3"), num(3, "4"), BCard(4, "Π", CardKind.Operator, op = Op.Pi)), 24,
-                        "Π 2 3 4 = 2 × 3 × 4",
+                        "Tap Π, then 2, 3 and 4.",
                     ) { done = true }
+                    0 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        SectionLabel("Numbers")
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { listOf("3", "7", "9").forEach { DeckCard(it, CardKind.Number, size = DeckCardSize.Large) } }
+                        SectionLabel("Operators")
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { listOf("+", "−", "Σ", "Π").forEach { DeckCard(it, CardKind.Operator, size = DeckCardSize.Large) } }
+                    }
+                    6 -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        DeckCard("8", CardKind.Number, size = DeckCardSize.Large); DeckCard("2", CardKind.Number, size = DeckCardSize.Large)
+                        DeckCard("5", CardKind.Number, size = DeckCardSize.Large); DeckCard("+", CardKind.Operator, size = DeckCardSize.Large)
+                    }
+                    7 -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        "DHAPPA".forEachIndexed { i, c -> DeckCard(c.toString(), if (i % 2 == 0) CardKind.Number else CardKind.Operator, size = DeckCardSize.Large) }
+                    }
                     else -> {}
                 }
-                if (st.needsAction && done) Text("Nice!", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.lanPlayColors.accentText)
+                if (st.needsAction && done) Text("Nice!", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.lanPlayColors.accentText)
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            if (step > 0) OutlinedButton(onClick = { forward = false; step-- }, modifier = Modifier.heightIn(min = 52.dp)) { IconLabel(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
-            Button(
-                enabled = !Steps[step].needsAction || done,
-                onClick = { if (last) onBack() else { forward = true; step++ } },
-                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-            ) { Text(if (last) "Let's play!" else "Next", style = MaterialTheme.typography.titleMedium) }
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            BigButton(
+                if (last) "Let's play!" else "Next", { if (last) onBack() else { forward = true; step++ } },
+                icon = if (last) DI.Play else DI.Right, enabled = !Steps[step].needsAction || done,
+            )
+            if (last) BigButton("Read the full rules", onFullRules, icon = DI.Book, primary = false, height = 48.dp, fontSize = 16)
         }
-        if (Steps[step].needsAction && !done) TextButton(onClick = { forward = true; step++ }) { IconLabel(Icons.AutoMirrored.Filled.ArrowForward, "Skip this step", color = MaterialTheme.lanPlayColors.accentText) }
-        if (last) OutlinedButton(onClick = onFullRules, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { IconLabel(Icons.Filled.Info, "Read the full rules") }
     }
 }
 
@@ -124,9 +160,9 @@ private fun DrawTargetDemo(onDone: () -> Unit) {
         }
     }
     if (!stopped) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(enabled = drawn < 3, onClick = { drawn++ }, modifier = Modifier.heightIn(min = 52.dp)) { IconLabel(Icons.Filled.Add, "Draw a card") }
-            OutlinedButton(enabled = drawn > 0, onClick = { stopped = true; onDone() }, modifier = Modifier.heightIn(min = 52.dp)) { IconLabel(Icons.Filled.Check, "Stop here") }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            BigButton("Draw a card", { drawn++ }, Modifier.weight(1f), icon = DI.DrawCard, primary = false, enabled = drawn < 3, height = 52.dp, fontSize = 16)
+            BigButton("Stop here", { stopped = true; onDone() }, Modifier.weight(1f), icon = DI.Check, enabled = drawn > 0, height = 52.dp, fontSize = 16)
         }
     } else {
         Text("The target is ${deck.take(drawn).joinToString("")}.", style = MaterialTheme.typography.titleMedium)

@@ -1,5 +1,6 @@
 package com.bumbaiya.lanplay.ui.screens
 
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.bumbaiya.lanplay.ui.components.BackLink
+import com.bumbaiya.lanplay.ui.components.Header
 import com.bumbaiya.lanplay.ui.components.CardKind
 import com.bumbaiya.lanplay.ui.components.DeckCard
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
@@ -35,8 +36,7 @@ import com.bumbaiya.lanplay.ui.game.BCard
 @Composable
 fun HowToPlayScreen(onBack: () -> Unit) {
     ScreenColumn {
-        BackLink(onBack)
-        Text("How to play", style = MaterialTheme.typography.headlineMedium)
+        Header("Full rules", onBack)
         Text(
             "Combine Maths is a race of mental maths. Use your cards to make the target number before anyone else does.",
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -124,7 +124,7 @@ private fun Step(number: String, title: String, content: @Composable () -> Unit)
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             SectionLabel("Step $number")
-            Text(title, style = MaterialTheme.typography.titleLarge)
+            Text(title, fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 20.sp)
             content()
         }
     }

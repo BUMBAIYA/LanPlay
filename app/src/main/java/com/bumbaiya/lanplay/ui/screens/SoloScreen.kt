@@ -1,5 +1,16 @@
 package com.bumbaiya.lanplay.ui.screens
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.bumbaiya.lanplay.ui.components.BigButton
+import com.bumbaiya.lanplay.ui.components.DI
+import com.bumbaiya.lanplay.ui.components.Header
+import com.bumbaiya.lanplay.ui.components.Panel
+import com.bumbaiya.lanplay.ui.components.SectionLabel
+import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
@@ -65,36 +76,27 @@ fun SoloScreen(onBack: () -> Unit) {
     }
 
     ScreenColumn {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = onBack, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText)) { IconLabel(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
-            if (phase != SoloPhase.Setup) {
-                Text("Score $score   ${secondsLeft}s", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 10.dp))
+        Header("Solo", onBack)
+        if (phase != SoloPhase.Setup) Text("Score $score   ·   ${secondsLeft}s left", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.lanPlayColors.accentText)
+        Panel(radius = 16.dp) {
+            SectionLabel("Target")
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (targetDigits.isEmpty()) Text("No target yet", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                targetDigits.forEach { DeckCard(it.toString(), CardKind.Number, size = DeckCardSize.Target) }
             }
-        }
-        Text("Solo", style = MaterialTheme.typography.headlineMedium)
-        Text("TARGET", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (targetDigits.isEmpty()) Text("No target yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            targetDigits.forEach { DeckCard(it.toString(), CardKind.Number, size = DeckCardSize.Large) }
         }
 
         when (phase) {
             SoloPhase.Setup -> {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(
-                        enabled = targetDigits.size < 3,
-                        onClick = { targetDigits.add(pool.randomDigit()) },
-                    ) { IconLabel(Icons.Filled.Add, "Draw target card") }
-                    OutlinedButton(onClick = {
+                    BigButton("Draw card", { targetDigits.add(pool.randomDigit()) }, Modifier.weight(1f), icon = DI.DrawCard, primary = false, enabled = targetDigits.size < 3, height = 48.dp, fontSize = 16)
+                    BigButton("Random", {
                         targetDigits.clear()
                         repeat((1..3).random()) { targetDigits.add(pool.randomDigit()) }
-                    }) { IconLabel(Icons.Filled.Refresh, "Random target") }
+                    }, Modifier.weight(1f), icon = DI.Spinner, primary = false, height = 48.dp, fontSize = 16)
                 }
-                Button(
-                    enabled = targetDigits.isNotEmpty(),
-                    onClick = { phase = SoloPhase.Playing },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                ) { IconLabel(Icons.Filled.PlayArrow, "Start ${ROUND_SECONDS}s round", style = MaterialTheme.typography.titleMedium) }
+                BigButton("Start ${ROUND_SECONDS}s round", { phase = SoloPhase.Playing }, icon = DI.Play, enabled = targetDigits.isNotEmpty())
             }
             SoloPhase.Playing -> {
                 val target = targetDigits.joinToString("").toLong()
@@ -116,16 +118,13 @@ fun SoloScreen(onBack: () -> Unit) {
                     },
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(onClick = { state.addToHand(pool.drawNumber()) }) { IconLabel(Icons.Filled.Add, "Draw number") }
-                    OutlinedButton(onClick = { state.addToHand(pool.drawOperator()) }) { IconLabel(Icons.Filled.Add, "Draw operator") }
+                    BigButton("Draw number", { state.addToHand(pool.drawNumber()) }, Modifier.weight(1f), icon = DI.DrawCard, primary = false, height = 44.dp, fontSize = 14, content = MaterialTheme.lanPlayColors.numberLabel)
+                    BigButton("Draw operator", { state.addToHand(pool.drawOperator()) }, Modifier.weight(1f), icon = DI.DrawCard, primary = false, height = 44.dp, fontSize = 14, content = MaterialTheme.lanPlayColors.operatorLabel)
                 }
             }
             SoloPhase.Over -> {
-                Text("Time's up! You hit $score target${if (score == 1) "" else "s"}.", style = MaterialTheme.typography.titleLarge)
-                Button(
-                    onClick = { score = 0; targetDigits.clear(); round++; phase = SoloPhase.Setup },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                ) { IconLabel(Icons.Filled.Refresh, "Play again", style = MaterialTheme.typography.titleMedium) }
+                Text("Time's up! You hit $score target${if (score == 1) "" else "s"}.", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                BigButton("Play again", { score = 0; targetDigits.clear(); round++; phase = SoloPhase.Setup }, icon = DI.Play)
             }
         }
     }
