@@ -49,12 +49,19 @@ private class Drag(val card: BCard, var topLeft: Offset)
 @Composable
 fun ExpressionBuilder(
     state: BuilderState,
-    engineHand: Hand,
+    engineHand: () -> Hand,
     target: Long,
     modifier: Modifier = Modifier,
+    onHit: () -> Unit = {},
+    penaltyMs: Long = 2000,
 ) {
     var drag by remember { mutableStateOf<Drag?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
+    // A wrong submission locks the Submit button for a short penalty.
+    var locked by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(locked) {
+        if (locked) { kotlinx.coroutines.delay(penaltyMs); locked = false }
+    }
     var origin by remember { mutableStateOf(Offset.Zero) }       // where this whole Box sits
     var trayBounds by remember { mutableStateOf(Rect.Zero) }      // the slot row area
     val slotBounds = remember { mutableMapOf<Int, Rect>() }      // each slot's area, by slot id
@@ -109,7 +116,7 @@ fun ExpressionBuilder(
                         val c = slot.card
                         DeckCard(
                             glyph = c.glyph, altGlyph = c.alt, kind = c.kind,
-                            onClick = { if (c.alt != null) state.tiltInSlot(index) else state.returnToHand(index) },
+                            onClick = { if (c.canTilt) state.tiltInSlot(index) else state.returnToHand(index) },
                             onLongClick = { state.returnToHand(index) },
                         )
                         slot.exp?.let { e ->
@@ -126,16 +133,22 @@ fun ExpressionBuilder(
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
+                    enabled = !locked,
                     onClick = {
-                        message = when (val r = ExpressionEvaluator.evaluate(state.expression(), engineHand)) {
-                            is EvalResult.Invalid -> "Not valid: ${r.reason}"
-                            is EvalResult.Value ->
-                                if (r.value.toString() == target.toString()) "Hit the target! ${state.expression()} = ${r.value}"
-                                else "Valid, but it equals ${r.value}, not $target"
+                        val r = ExpressionEvaluator.evaluate(state.expression(), engineHand())
+                        if (r is EvalResult.Value && r.value.toString() == target.toString()) {
+                            message = null
+                            onHit()
+                        } else {
+                            locked = true
+                            message = when (r) {
+                                is EvalResult.Invalid -> "Not valid: ${r.reason}"
+                                is EvalResult.Value -> "That equals ${r.value}, not $target"
+                            } + " (+${penaltyMs / 1000}s penalty)"
                         }
                     },
                     modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-                ) { Text("Submit", style = MaterialTheme.typography.titleMedium) }
+                ) { Text(if (locked) "Wait..." else "Submit", style = MaterialTheme.typography.titleMedium) }
                 OutlinedButton(
                     onClick = { state.clear(); message = null },
                     modifier = Modifier.heightIn(min = 52.dp),
@@ -195,7 +208,7 @@ private fun HandCard(
         // While dragging, the hand shows the card faded where it came from.
         DeckCard(
             glyph = card.glyph, altGlyph = card.alt, kind = card.kind, dimmed = isDragged,
-            onClick = { if (card.alt != null) state.tiltInHand(card) },
+            onClick = { if (card.canTilt) state.tiltInHand(card) },
         )
     }
 }

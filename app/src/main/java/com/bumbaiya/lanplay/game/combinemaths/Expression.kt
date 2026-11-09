@@ -11,7 +11,7 @@ data class Hand(
 )
 
 /** The red operator cards. */
-enum class Op { Plus, Minus, Pi, Sigma, Sqrt }
+enum class Op { Plus, Minus, Pi, Sigma, Sqrt, Wild }
 
 sealed interface EvalResult {
     data class Value(val value: Rational) : EvalResult
@@ -72,7 +72,7 @@ object ExpressionEvaluator {
         if (operatorsUsed == 0) return "Use at least one operator card"
 
         // One card, one use: count how many of each operator the text needs, then let wilds cover gaps.
-        var wildsLeft = hand.wilds
+        var wildsLeft = hand.wilds + hand.operators.count { it == Op.Wild }
         for ((op, need) in opsNeeded) {
             val have = hand.operators.count { it == op }
             val missing = need - have

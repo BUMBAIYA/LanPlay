@@ -15,9 +15,21 @@ data class BCard(
     val alt: String? = null,
     val op: Op? = null,
     val free: Boolean = false,
+    /** The wild "*" card: tapping cycles which operator it stands for. */
+    val wild: Boolean = false,
 ) {
-    /** Flip a two-in-one card: swap which operator is active. */
-    fun tilted() = if (alt == null) this else copy(glyph = alt, alt = glyph)
+    val canTilt get() = alt != null || wild
+
+    /** Tap: a two-in-one card swaps its operators, a wild card moves to the next operator. */
+    fun tilted(): BCard = when {
+        wild -> copy(glyph = WILD_CYCLE[(WILD_CYCLE.indexOf(glyph) + 1) % WILD_CYCLE.size])
+        alt != null -> copy(glyph = alt, alt = glyph)
+        else -> this
+    }
+
+    companion object {
+        val WILD_CYCLE = listOf("+", "−", "×", "÷", "Σ", "Π", "√")
+    }
 }
 
 /** One position in the expression row. [exp] is a number card raised on top (the power). */
@@ -60,6 +72,11 @@ class BuilderState(initialHand: List<BCard>) {
         val s = slots.removeAt(index)
         listOfNotNull(s.card, s.exp).forEach { if (!it.free) hand.add(it) }
     }
+
+    /** Every real (non-free) card the player owns, in the hand or placed in the row. */
+    fun allCards(): List<BCard> = hand + slots.flatMap { listOfNotNull(it.card, it.exp) }.filter { !it.free }
+
+    fun addToHand(card: BCard) { hand.add(card) }
 
     fun clear() { while (slots.isNotEmpty()) returnToHand(slots.lastIndex) }
 
