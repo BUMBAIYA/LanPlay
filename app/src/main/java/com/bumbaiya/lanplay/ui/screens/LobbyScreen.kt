@@ -17,6 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +59,25 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     val everyoneReady = state.players.all { it.ready }
     val canStart = isAdmin && state.players.size >= GameEngine.MIN_PLAYERS && everyoneReady
     val waitingFor = state.players.firstOrNull { !it.ready }
+
+    var editing by remember { mutableStateOf(false) }
+    if (editing && isAdmin) {
+        ScreenColumn(gap = 12.dp) {
+            Header("Game settings", { editing = false })
+        run {
+            StepperRow("Turn timer", "${s.turnSeconds} s", true, { change(s.copy(turnSeconds = s.turnSeconds - 5)) }, { change(s.copy(turnSeconds = s.turnSeconds + 5)) })
+            StepperRow("Catch window", "${s.catchWindowSeconds} s", true, { change(s.copy(catchWindowSeconds = s.catchWindowSeconds - 1)) }, { change(s.copy(catchWindowSeconds = s.catchWindowSeconds + 1)) })
+            StepperRow("Wrong answer penalty", "${s.penaltySeconds} s", true, { change(s.copy(penaltySeconds = s.penaltySeconds - 1)) }, { change(s.copy(penaltySeconds = s.penaltySeconds + 1)) })
+            StepperRow("Points to win", "${s.winScore}", true, { change(s.copy(winScore = s.winScore - 1)) }, { change(s.copy(winScore = s.winScore + 1)) })
+            StepperRow("Points for a round win", "${s.roundWinPoints}", true, { change(s.copy(roundWinPoints = s.roundWinPoints - 1)) }, { change(s.copy(roundWinPoints = s.roundWinPoints + 1)) })
+            StepperRow("Points for a catch", "${s.catchPoints}", true, { change(s.copy(catchPoints = s.catchPoints - 1)) }, { change(s.copy(catchPoints = s.catchPoints + 1)) })
+            ToggleRow("Show live result while building", "Off by default. Keep it off so players do the math in their heads.", s.showLiveResult, enabled = true) { change(s.copy(showLiveResult = it)) }
+        }
+
+            BigButton("Done", { editing = false }, icon = DI.Check)
+        }
+        return
+    }
 
     ScreenColumn(gap = 20.dp) {
         Header("Lobby", onLeave)
@@ -103,14 +124,20 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            SectionLabel(if (isAdmin) "Game settings · admin" else "Game settings · set by the admin")
-            StepperRow("Turn timer", "${s.turnSeconds} s", isAdmin, { change(s.copy(turnSeconds = s.turnSeconds - 5)) }, { change(s.copy(turnSeconds = s.turnSeconds + 5)) })
-            StepperRow("Catch window", "${s.catchWindowSeconds} s", isAdmin, { change(s.copy(catchWindowSeconds = s.catchWindowSeconds - 1)) }, { change(s.copy(catchWindowSeconds = s.catchWindowSeconds + 1)) })
-            StepperRow("Wrong answer penalty", "${s.penaltySeconds} s", isAdmin, { change(s.copy(penaltySeconds = s.penaltySeconds - 1)) }, { change(s.copy(penaltySeconds = s.penaltySeconds + 1)) })
-            StepperRow("Points to win", "${s.winScore}", isAdmin, { change(s.copy(winScore = s.winScore - 1)) }, { change(s.copy(winScore = s.winScore + 1)) })
-            StepperRow("Points for a round win", "${s.roundWinPoints}", isAdmin, { change(s.copy(roundWinPoints = s.roundWinPoints - 1)) }, { change(s.copy(roundWinPoints = s.roundWinPoints + 1)) })
-            StepperRow("Points for a catch", "${s.catchPoints}", isAdmin, { change(s.copy(catchPoints = s.catchPoints - 1)) }, { change(s.copy(catchPoints = s.catchPoints + 1)) })
-            ToggleRow("Show live result while building", "Off by default. Keep it off so players do the math in their heads.", s.showLiveResult, enabled = isAdmin) { change(s.copy(showLiveResult = it)) }
+            SectionLabel("Game settings")
+            Panel(Modifier) {
+                listOf(
+                    "Turn timer" to "${s.turnSeconds} s", "Catch window" to "${s.catchWindowSeconds} s", "Wrong answer penalty" to "${s.penaltySeconds} s",
+                    "Points to win" to "${s.winScore}", "Points for a round win" to "${s.roundWinPoints}", "Points for a catch" to "${s.catchPoints}",
+                    "Live result while building" to if (s.showLiveResult) "On" else "Off",
+                ).forEach { (k, v) ->
+                    Row(Modifier.fillMaxWidth().heightIn(min = 32.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(k, Modifier.weight(1f), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(v, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                }
+            }
+            if (isAdmin) BigButton("Change settings", { editing = true }, icon = DI.Sliders, primary = false, height = 48.dp, fontSize = 16)
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
