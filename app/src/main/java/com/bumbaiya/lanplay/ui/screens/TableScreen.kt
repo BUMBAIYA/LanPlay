@@ -5,6 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import com.bumbaiya.lanplay.ui.components.IconLabel
+import com.bumbaiya.lanplay.ui.components.Confetti
+import com.bumbaiya.lanplay.ui.components.pulse
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -25,6 +27,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -80,7 +86,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     LaunchedEffect(phase is Phase.Turns) { if (phase !is Phase.Turns) catching = null }
 
     ScreenColumn {
-        BackLink({ confirmLeave = true }, "< Leave game")
+        BackLink({ confirmLeave = true }, "Leave game")
         Text("Round ${state.round}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (state.notice.isNotBlank()) Text(state.notice, style = MaterialTheme.typography.titleMedium)
 
@@ -120,10 +126,16 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                     Column(Modifier.padding(12.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(p.name + if (p.id == myId) " (you)" else "", style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                when { !p.connected -> "offline"; rp?.out == true -> "OUT"; turn -> "turn"; else -> "" } + "   ${p.score} pts",
-                                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            val shownScore by androidx.compose.animation.core.animateIntAsState(p.score, androidx.compose.animation.core.tween(700), label = "score")
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                when {
+                                    !p.connected -> Text("offline", style = MaterialTheme.typography.labelLarge)
+                                    rp?.out == true -> Text("OUT", style = MaterialTheme.typography.labelLarge)
+                                    turn -> Text("turn", style = MaterialTheme.typography.labelLarge, modifier = Modifier.pulse())
+                                }
+                                Icon(androidx.compose.material.icons.Icons.Rounded.Star, null, Modifier.size(18.dp), tint = MaterialTheme.lanPlayColors.accentText)
+                                Text("$shownScore", style = MaterialTheme.typography.titleMedium)
+                            }
                         }
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             rp?.hand?.forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, size = DeckCardSize.Small, dimmed = rp.out) }
@@ -135,7 +147,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                                 onClick = { catching = p.id },
                                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.lanPlayColors.danger, contentColor = MaterialTheme.lanPlayColors.onDanger),
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                            ) { Text("DHAPPA! Catch ${p.name} (${secs}s)") }
+                            ) { IconLabel(Icons.Filled.Warning, "DHAPPA! Catch ${p.name} (${secs}s)") }
                         }
                     }
                 }
@@ -144,6 +156,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
 
         if (phase is Phase.RoundEnd || phase is Phase.Finished) {
             val finished = phase as? Phase.Finished
+            Confetti()
             SectionLabel(if (finished != null) "Series over" else "Round over")
             if (finished != null) Text("${state.player(finished.winnerId)?.name} wins the series!", style = MaterialTheme.typography.headlineMedium)
             if (isAdmin) {
@@ -203,7 +216,7 @@ private fun TurnsSection(
             .collectLatest { row -> delay(120); client.send(Intent.Preview(row)) }
     }
     if (iAmOut) { Text("You are out of this round. Watch for DHAPPA chances!", color = MaterialTheme.colorScheme.onSurfaceVariant); return }
-    if (!myTurn) { Text("Plan your move. All cards are visible to everyone.", color = MaterialTheme.colorScheme.onSurfaceVariant); return }
+    if (!myTurn) return
 
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         OutlinedButton(enabled = !phase.hasDrawn, onClick = { client.send(Intent.DrawCard(number = true)); Feedback.draw() }) { IconLabel(Icons.Filled.Add, "Draw number") }

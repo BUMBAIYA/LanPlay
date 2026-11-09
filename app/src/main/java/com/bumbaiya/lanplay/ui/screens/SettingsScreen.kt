@@ -33,7 +33,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     val haptics by settings.haptics.collectAsState()
     ScreenColumn {
         BackLink(onBack)
-        IconLabel(Icons.Filled.Settings, "Settings", style = MaterialTheme.typography.headlineMedium)
+        Text("Settings", style = MaterialTheme.typography.headlineMedium)
         SectionLabel("Your name")
         OutlinedTextField(
             value = name, onValueChange = { settings.setName(it.take(16)) }, singleLine = true,

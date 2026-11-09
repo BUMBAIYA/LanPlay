@@ -46,7 +46,7 @@ fun HostScreen(onBack: () -> Unit) {
     val error by Session.error.collectAsState()
     ScreenColumn {
         BackLink(onBack)
-        IconLabel(Icons.Filled.Home, "Host a game", style = MaterialTheme.typography.headlineMedium)
+        Text("Host a game", style = MaterialTheme.typography.headlineMedium)
         Text(
             "Turn on your phone's hotspot first. Friends join its Wi-Fi, then enter the room ID or scan the QR code you'll see next.",
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -57,7 +57,7 @@ fun HostScreen(onBack: () -> Unit) {
             enabled = !busy && name.isNotBlank(),
             onClick = { Session.settings.setName(name); Session.host(name) },
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) { Text(if (busy) "Creating room..." else "Create room", style = MaterialTheme.typography.titleMedium) }
+        ) { IconLabel(Icons.Filled.Add, if (busy) "Creating room..." else "Create room", style = MaterialTheme.typography.titleMedium) }
     }
 }
 
@@ -82,7 +82,7 @@ fun JoinScreen(onBack: () -> Unit) {
 
     ScreenColumn {
         BackLink(onBack)
-        IconLabel(Icons.Filled.Person, "Join a game", style = MaterialTheme.typography.headlineMedium)
+        Text("Join a game", style = MaterialTheme.typography.headlineMedium)
         Text(
             "Connect to the host's hotspot, then enter the room ID shown on their screen.",
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -99,7 +99,7 @@ fun JoinScreen(onBack: () -> Unit) {
             enabled = !busy && name.isNotBlank() && room.length == 4,
             onClick = { Session.settings.setName(name); Session.joinByRoom(room, name) },
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) { Text(if (busy) "Looking for room..." else "Join room", style = MaterialTheme.typography.titleMedium) }
+        ) { IconLabel(Icons.Filled.PlayArrow, if (busy) "Looking for room..." else "Join room", style = MaterialTheme.typography.titleMedium) }
         OutlinedButton(
             enabled = name.isNotBlank(),
             onClick = {
@@ -108,7 +108,7 @@ fun JoinScreen(onBack: () -> Unit) {
                     onError = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() })
             },
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) { Text("Scan QR code") }
+        ) { IconLabel(Icons.Filled.Search, "Scan QR code") }
 
         SectionLabel("Rooms nearby")
         if (rooms.isEmpty()) Text("None found yet. Make sure you're on the host's hotspot.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

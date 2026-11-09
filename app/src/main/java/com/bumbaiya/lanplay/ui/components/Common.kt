@@ -3,6 +3,21 @@ package com.bumbaiya.lanplay.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.SportsEsports
+import androidx.compose.material.icons.rounded.MenuBook
+import androidx.compose.material.icons.rounded.Casino
+import androidx.compose.material.icons.rounded.Groups
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Style
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.QrCodeScanner
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 
 /**
@@ -83,7 +99,31 @@ fun StepperRow(label: String, value: String, enabled: Boolean, onMinus: () -> Un
         }
     }
 
-/** A button label with a small icon in front, so buttons read at a glance. */
+/** Solid, rounded icons with a game feel, keyed by the icon name the call sites already use. */
+private fun gameIcon(name: String): androidx.compose.ui.graphics.vector.ImageVector {
+    val r = androidx.compose.material.icons.Icons.Rounded
+    val m = androidx.compose.material.icons.Icons.AutoMirrored.Rounded
+    return when (name) {
+        "Filled.Star" -> r.SportsEsports
+        "Filled.Info" -> r.MenuBook
+        "Filled.Home" -> r.Casino
+        "Filled.Person" -> r.Groups
+        "Filled.PlayArrow" -> r.PlayArrow
+        "Filled.Add" -> r.Style
+        "Filled.Check" -> r.Check
+        "Filled.Close" -> r.Close
+        "Filled.Refresh" -> r.Casino
+        "Filled.Search" -> r.QrCodeScanner
+        "Filled.Warning" -> r.Bolt
+        "Filled.Settings" -> r.Settings
+        "AutoMirrored.Filled.ArrowBack" -> m.ArrowBack
+        "AutoMirrored.Filled.ArrowForward" -> m.ArrowForward
+        "AutoMirrored.Filled.ExitToApp" -> m.ExitToApp
+        else -> r.Star
+    }
+}
+
+/** A button label with a solid game-style icon in front, so buttons read at a glance. */
 @androidx.compose.runtime.Composable
 fun IconLabel(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -95,7 +135,7 @@ fun IconLabel(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        androidx.compose.material3.Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+        androidx.compose.material3.Icon(gameIcon(icon.name), contentDescription = null, modifier = Modifier.size(20.dp))
         Text(text, style = style, color = color)
     }
 }

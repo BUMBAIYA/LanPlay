@@ -53,7 +53,7 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     val canStart = isAdmin && state.players.size >= GameEngine.MIN_PLAYERS && everyoneReady
 
     ScreenColumn {
-        BackLink(onLeave, "< Leave room")
+        BackLink(onLeave, "Leave room")
         SectionLabel("Room ID")
         Text(state.roomId, style = MaterialTheme.typography.displayMedium, color = MaterialTheme.lanPlayColors.accentText)
         link?.let { l ->
@@ -91,7 +91,7 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
             Button(
                 enabled = canStart, onClick = { client.send(Intent.Start) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) { Text(if (canStart) "Start game" else if (state.players.size < GameEngine.MIN_PLAYERS) "Waiting for players" else "Waiting for everyone to be ready", style = MaterialTheme.typography.titleMedium) }
+            ) { IconLabel(Icons.Filled.PlayArrow, if (canStart) "Start game" else if (state.players.size < GameEngine.MIN_PLAYERS) "Waiting for players" else "Waiting for everyone to be ready", style = MaterialTheme.typography.titleMedium) }
         } else Text("Waiting for the admin to start...", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
     }
 }

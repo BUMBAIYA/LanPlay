@@ -73,10 +73,14 @@ fun DeckCard(
         }
     }
 
+    // Pop-in: a new card bounces up from small, so draws and deals feel alive.
+    val pop = remember { Animatable(0.55f) }
+    LaunchedEffect(Unit) { pop.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)) }
+
     Surface(
         modifier = modifier
             .size(size.width, size.height)
-            .graphicsLayer { rotationZ = tilt.value }
+            .graphicsLayer { rotationZ = tilt.value; scaleX = pop.value; scaleY = pop.value }
             .alpha(if (dimmed) 0.4f else 1f)
             .combinedClickable(enabled = onClick != null || onLongClick != null, onClick = { onClick?.invoke() }, onLongClick = onLongClick)
             .semantics { contentDescription = "${kind.name} card $glyph" },

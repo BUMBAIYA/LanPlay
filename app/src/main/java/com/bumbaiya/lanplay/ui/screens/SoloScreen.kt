@@ -84,17 +84,17 @@ fun SoloScreen(onBack: () -> Unit) {
                     OutlinedButton(
                         enabled = targetDigits.size < 3,
                         onClick = { targetDigits.add(pool.randomDigit()) },
-                    ) { Text("Draw target card") }
+                    ) { IconLabel(Icons.Filled.Add, "Draw target card") }
                     OutlinedButton(onClick = {
                         targetDigits.clear()
                         repeat((1..3).random()) { targetDigits.add(pool.randomDigit()) }
-                    }) { Text("Random target") }
+                    }) { IconLabel(Icons.Filled.Refresh, "Random target") }
                 }
                 Button(
                     enabled = targetDigits.isNotEmpty(),
                     onClick = { phase = SoloPhase.Playing },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                ) { Text("Start ${ROUND_SECONDS}s round", style = MaterialTheme.typography.titleMedium) }
+                ) { IconLabel(Icons.Filled.PlayArrow, "Start ${ROUND_SECONDS}s round", style = MaterialTheme.typography.titleMedium) }
             }
             SoloPhase.Playing -> {
                 val target = targetDigits.joinToString("").toLong()
@@ -125,7 +125,7 @@ fun SoloScreen(onBack: () -> Unit) {
                 Button(
                     onClick = { score = 0; targetDigits.clear(); round++; phase = SoloPhase.Setup },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                ) { Text("Play again", style = MaterialTheme.typography.titleMedium) }
+                ) { IconLabel(Icons.Filled.Refresh, "Play again", style = MaterialTheme.typography.titleMedium) }
             }
         }
     }

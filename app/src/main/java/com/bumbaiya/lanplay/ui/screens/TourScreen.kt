@@ -47,14 +47,14 @@ import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 private class TourStep(val title: String, val text: String, val needsAction: Boolean)
 
 private val Steps = listOf(
-    TourStep("Welcome", "Combine Maths is a race of mental maths. A target number appears, and the first player to build it from their cards wins the round. This tour lets you try each idea yourself. It takes about two minutes.", false),
-    TourStep("1. The target", "A random player draws 1, 2 or 3 number cards and stops whenever they like. The cards side by side, in the order drawn, are the target. Try it: draw a card or two, then stop.", true),
-    TourStep("2. Two-in-one cards", "Operator cards are red. The + and − cards are two-in-one: the big symbol at the top right is the one that counts. Tap the card to tilt it and swap to × or ÷. Try it.", true),
-    TourStep("3. Build an answer", "Drag cards into your row, then press Submit. Number cards side by side join up (3 and 4 make 34). Make 12 from 3, 4 and the + card. Tip: tap a card in your row to take it back.", true),
-    TourStep("4. Power", "Drag a number card and hold it over another number. It sits on top as a small raised number, the power. Tap the small card to undo. Make 64.", true),
-    TourStep("5. Σ and Π", "Σ adds two or more numbers and Π multiplies two or more. Brackets and commas are free and group the numbers, like Π ( 2 , 3 , 4 ). Make 24.", true),
-    TourStep("6. DHAPPA!", "When someone passes or runs out of time, you get a few seconds to catch them. If you can build the target from THEIR cards, press DHAPPA. A correct catch earns 3 points and puts them out of the round. A wrong catch puts YOU out, so be sure. First to 11 points wins the series.", false),
-    TourStep("You're ready", "Everyone sees everyone's cards, and you can watch other players build live. Good luck!", false),
+    TourStep("Hit the target!", "Make the target number before your friends do. Let's try it!", false),
+    TourStep("Pick the target", "Draw 1 to 3 number cards. Side by side, they make the target.", true),
+    TourStep("Flip a card", "Tap the card to flip it from + to ×.", true),
+    TourStep("Make 12", "Drag cards into your row, then tap Submit.", true),
+    TourStep("Power up", "Hold a number over another to make a power. Make 64!", true),
+    TourStep("Σ and Π", "Σ adds many numbers. Π multiplies many. Make 24!", true),
+    TourStep("DHAPPA!", "Someone passed? Catch them! Build the target from their cards. Right: +3 points. Wrong: you're out!", false),
+    TourStep("You're ready!", "Grab your friends and play!", false),
 )
 
 /** A guided, hands-on tour: each step explains one idea and, where it matters, asks you to try it. */
@@ -85,16 +85,16 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
                     2 -> TiltPractice { done = true }
                     3 -> Practice(
                         listOf(num(1, "3"), num(2, "4"), plus(3)), 12,
-                        "Tilt + to ×, then place 3, ×, 4 in that order and press Submit.",
+                        "Flip + to ×. Then 3 × 4.",
                     ) { done = true }
-                    4 -> Practice(listOf(num(1, "4"), num(2, "3")), 64, "Drag the 3 over the 4 until the 4 gets a highlighted border, then let go.") { done = true }
+                    4 -> Practice(listOf(num(1, "4"), num(2, "3")), 64, "Drag the 3 onto the 4 and let go.") { done = true }
                     5 -> Practice(
                         listOf(num(1, "2"), num(2, "3"), num(3, "4"), BCard(4, "Π", CardKind.Operator, op = Op.Pi)), 24,
-                        "Place Π ( 2 , 3 , 4 ) using the bracket and comma cards below.",
+                        "Π ( 2 , 3 , 4 )",
                     ) { done = true }
                     else -> {}
                 }
-                if (st.needsAction && done) Text("Nice! That's it.", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                if (st.needsAction && done) Text("Nice!", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.lanPlayColors.accentText)
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
@@ -103,7 +103,7 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
                 enabled = !Steps[step].needsAction || done,
                 onClick = { if (last) onBack() else { forward = true; step++ } },
                 modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-            ) { Text(if (last) "Start playing" else "Next", style = MaterialTheme.typography.titleMedium) }
+            ) { Text(if (last) "Let's play!" else "Next", style = MaterialTheme.typography.titleMedium) }
         }
         if (Steps[step].needsAction && !done) TextButton(onClick = { forward = true; step++ }) { IconLabel(Icons.AutoMirrored.Filled.ArrowForward, "Skip this step", color = MaterialTheme.lanPlayColors.accentText) }
         if (last) OutlinedButton(onClick = onFullRules, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { IconLabel(Icons.Filled.Info, "Read the full rules") }
@@ -144,7 +144,7 @@ private fun TiltPractice(onDone: () -> Unit) {
 private fun Practice(cards: List<BCard>, target: Long, hint: String, onDone: () -> Unit) {
     val state = remember { BuilderState(cards) }
     var showHint by remember { mutableStateOf(false) }
-    Text("TARGET  $target", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+    Text("TARGET  $target", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.lanPlayColors.accentText)
     ExpressionBuilder(state, engineHand = { state.allCards().toEngineHand() }, target = target, onHit = onDone, penaltyMs = 500)
     TextButton(onClick = { showHint = !showHint }) { Text(if (showHint) "Hide hint" else "Show hint", color = MaterialTheme.lanPlayColors.accentText) }
     if (showHint) Text(hint, style = MaterialTheme.typography.bodyMedium)

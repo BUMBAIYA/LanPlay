@@ -1,6 +1,7 @@
 package com.bumbaiya.lanplay.ui.game
 
 import androidx.compose.animation.core.Animatable
+import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.animateContentSize
@@ -32,7 +33,7 @@ fun WatchedRow(row: List<RowSlot>, name: String) {
     Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             if (row.isEmpty()) "$name is thinking..." else "$name is building:",
-            style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.labelLarge, color = MaterialTheme.lanPlayColors.accentText,
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             row.forEachIndexed { i, slot ->
