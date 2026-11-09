@@ -30,11 +30,25 @@ val Inter = FontFamily(
     variableFont(R.font.inter, FontWeight.SemiBold),
 )
 
+/**
+ * Starts from Material's full set of text styles and then swaps in our two fonts, so no text
+ * anywhere (dialog titles, the big room ID, text fields) falls back to the Android system font.
+ * Headings and numbers use Space Grotesk, everything you read uses Inter, as in the design.
+ */
+private val Base = Typography()
+private fun androidx.compose.ui.text.TextStyle.heading() = copy(fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold)
+private fun androidx.compose.ui.text.TextStyle.text() = copy(fontFamily = Inter)
+
 val Typography = Typography(
+    displayLarge = Base.displayLarge.heading(),
+    displayMedium = Base.displayMedium.heading(),
+    displaySmall = Base.displaySmall.heading(),
     headlineLarge = TextStyle(fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 34.sp, lineHeight = 40.sp),
     headlineMedium = TextStyle(fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 26.sp, lineHeight = 32.sp),
+    headlineSmall = Base.headlineSmall.heading(),
     titleLarge = TextStyle(fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 22.sp, lineHeight = 28.sp),
     titleMedium = TextStyle(fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 18.sp, lineHeight = 24.sp),
+    titleSmall = Base.titleSmall.heading(),
     bodyLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp),
     bodyMedium = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
     bodySmall = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 18.sp),
