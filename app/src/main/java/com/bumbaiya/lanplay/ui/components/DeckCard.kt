@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bumbaiya.lanplay.ui.theme.Baloo
+import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
 import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 
 /** Number cards are blue, operator cards are red, like the physical deck. */
@@ -38,6 +38,9 @@ enum class CardKind { Number, Operator }
 /** Sizes taken from the design: opponent row, your hand, and the big catch view. */
 enum class DeckCardSize(val width: Dp, val height: Dp, val glyph: TextUnit) {
     Small(26.dp, 36.dp, 16.sp),
+    Row(40.dp, 54.dp, 24.sp),
+    Target(44.dp, 62.dp, 32.sp),
+    Proof(48.dp, 62.dp, 30.sp),
     Medium(48.dp, 66.dp, 28.sp),
     Large(56.dp, 78.dp, 34.sp),
 }
@@ -97,7 +100,7 @@ fun DeckCard(
                 Text(
                     text = altGlyph,
                     color = colors.cardOperator.copy(alpha = 0.45f),
-                    fontFamily = Baloo,
+                    fontFamily = SpaceGrotesk,
                     fontSize = size.glyph * 0.55f,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     modifier = androidx.compose.ui.Modifier
@@ -109,7 +112,7 @@ fun DeckCard(
                 modifier = if (altGlyph != null) androidx.compose.ui.Modifier.padding(end = 6.dp, top = 2.dp) else androidx.compose.ui.Modifier,
                 text = glyph,
                 color = if (kind == CardKind.Number) colors.cardNumber else colors.cardOperator,
-                fontFamily = Baloo,
+                fontFamily = SpaceGrotesk,
                 fontSize = size.glyph,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
             )

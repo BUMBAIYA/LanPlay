@@ -78,6 +78,19 @@ class BuilderState(initialHand: List<BCard>) {
 
     fun addToHand(card: BCard) { hand.add(card) }
 
+    /** Every real card the player owns in a stable order, whether it is in the hand or placed in the row. */
+    fun owned(): List<BCard> = allCards().sortedBy { it.id }
+
+    fun isUsed(card: BCard) = slots.any { it.card.id == card.id || it.exp?.id == card.id }
+
+    /** Takes a placed card back to the hand (whether it sits in the row or is raised as a power). */
+    fun giveBack(card: BCard) {
+        val i = slots.indexOfFirst { it.card.id == card.id }
+        if (i >= 0) { returnToHand(i); return }
+        val j = slots.indexOfFirst { it.exp?.id == card.id }
+        if (j >= 0) { val e = slots[j].exp!!; slots[j] = slots[j].copy(exp = null); hand.add(e) }
+    }
+
     fun clear() { while (slots.isNotEmpty()) returnToHand(slots.lastIndex) }
 
     /** Turns the slot row into the text the rules engine understands. */

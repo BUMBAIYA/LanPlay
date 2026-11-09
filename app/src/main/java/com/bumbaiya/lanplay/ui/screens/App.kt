@@ -21,6 +21,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import com.bumbaiya.lanplay.ui.components.DeckCardSize
+import com.bumbaiya.lanplay.ui.components.DeckCard
+import com.bumbaiya.lanplay.ui.components.CardKind
+import com.bumbaiya.lanplay.ui.components.MenuTile
+import com.bumbaiya.lanplay.ui.components.BigButton
+import com.bumbaiya.lanplay.ui.components.Header
+import com.bumbaiya.lanplay.ui.components.DIcon
+import com.bumbaiya.lanplay.ui.components.DI
+import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
@@ -90,57 +105,72 @@ private fun GameFlow(client: GameClient) {
     }
 }
 
+/** Three cards (6, +, 9) shown on the games list and the game menu, exactly as in the design. */
+@Composable
+private fun CardTrio() = Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    DeckCard("6", CardKind.Number, size = DeckCardSize.Large)
+    DeckCard("+", CardKind.Operator, size = DeckCardSize.Large)
+    DeckCard("9", CardKind.Number, size = DeckCardSize.Large)
+}
+
 @Composable
 private fun GamesScreen(onOpen: () -> Unit, onSettings: () -> Unit) {
-    ScreenColumn {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("LanPlay", style = MaterialTheme.typography.headlineLarge)
-            TextButton(onClick = onSettings, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText)) { IconLabel(Icons.Filled.Settings, "Settings") }
-        }
-        Text(
-            "Games for the room you're in. One hotspot, no internet, no accounts.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text("GAMES", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Surface(
-            onClick = onOpen,
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Combine Maths", style = MaterialTheme.typography.titleLarge)
-                Text(
-                    "Build the target number from your cards before anyone else. Call DHAPPA when someone misses it.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+    val accent = MaterialTheme.colorScheme.primary
+    ScreenColumn(gap = 28.dp) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    DIcon(DI.Logo, tint = MaterialTheme.lanPlayColors.accentText, size = 32.dp)
+                    Text("LanPlay", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 30.sp, letterSpacing = (-0.5).sp)
+                }
+                Box(Modifier.size(44.dp).clickable(onClick = onSettings), contentAlignment = Alignment.Center) { DIcon(DI.Sliders) }
             }
+            Text("Games for the room you're in. One hotspot, no internet, no accounts.", fontSize = 16.sp, lineHeight = 23.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text("Choose a game", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Surface(
+                onClick = onOpen, shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    CardTrio()
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Dhappa", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                            Text("Build the target number from your cards, using your own mental math. Catch anyone who passes.", fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        DIcon(DI.Right, tint = MaterialTheme.lanPlayColors.accentText)
+                    }
+                }
+            }
+            val dash = MaterialTheme.colorScheme.outline
+            Box(
+                Modifier.fillMaxWidth().heightIn(min = 88.dp).padding(horizontal = 0.dp).drawBehind {
+                    drawRoundRect(dash, cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(), pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))))
+                }.padding(horizontal = 20.dp), contentAlignment = Alignment.Center,
+            ) { Text("More games coming. Any game, cards or not.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
         }
     }
 }
 
 @Composable
 private fun GameMenuScreen(onBack: () -> Unit, onSolo: () -> Unit, onHost: () -> Unit, onJoin: () -> Unit, onHowTo: () -> Unit, onTour: () -> Unit) {
-    ScreenColumn {
-        BackLink(onBack)
-        Text("Combine Maths", style = MaterialTheme.typography.headlineMedium)
-        Button(onClick = onTour, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
-            IconLabel(Icons.Filled.Star, "Interactive tour", style = MaterialTheme.typography.titleMedium)
+    ScreenColumn(gap = 24.dp) {
+        Header("", onBack, caption = "Games")
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            CardTrio()
+            Text("Dhappa", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 34.sp)
+            Text("Combine your number and operator cards to hit the target. You don't have to use every card. Spot a player who missed it and catch them.", fontSize = 15.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        OutlinedButton(onClick = onHowTo, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
-            IconLabel(Icons.Filled.Info, "Full rules", style = MaterialTheme.typography.titleMedium)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            MenuTile("Host a game", "Create a room, friends join you", DI.Host, onHost, primary = true)
+            MenuTile("Join a game", "Enter the room ID from the host", DI.Join, onJoin)
+            MenuTile("Play solo", "Set your own target, race the timer", DI.Solo, onSolo)
         }
-        Button(onClick = onHost, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            IconLabel(Icons.Filled.Home, "Host a game", style = MaterialTheme.typography.titleMedium)
-        }
-        OutlinedButton(onClick = onJoin, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            IconLabel(Icons.Filled.Person, "Join a game", style = MaterialTheme.typography.titleMedium)
-        }
-        OutlinedButton(onClick = onSolo, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            IconLabel(Icons.Filled.PlayArrow, "Play solo", style = MaterialTheme.typography.titleMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            BigButton("How to play", onTour, Modifier.weight(1f), icon = DI.Tour, primary = false, height = 48.dp, fontSize = 15)
+            BigButton("Full rules", onHowTo, Modifier.weight(1f), icon = DI.Book, primary = false, height = 48.dp, fontSize = 15)
         }
     }
 }

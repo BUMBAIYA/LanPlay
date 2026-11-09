@@ -249,7 +249,7 @@ class GameEngine(private val random: Random = Random.Default) {
 
     companion object {
         const val MIN_PLAYERS = 2
-        const val MAX_PLAYERS = 8
+        const val MAX_PLAYERS = 6
         const val MAX_TARGET_CARDS = 3
         const val MAX_PREVIEW_SLOTS = 30
         private val OPERATOR_POOL = listOf(Op.Plus, Op.Minus, Op.Pi, Op.Sigma, Op.Sqrt, Op.Wild)

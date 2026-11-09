@@ -2,23 +2,7 @@ package com.bumbaiya.lanplay.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.SportsEsports
-import androidx.compose.material.icons.rounded.MenuBook
-import androidx.compose.material.icons.rounded.Casino
-import androidx.compose.material.icons.rounded.Groups
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Style
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.QrCodeScanner
-import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.automirrored.rounded.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -48,7 +32,7 @@ import com.bumbaiya.lanplay.ui.theme.lanPlayColors
  * and big text sizes never cut anything off.
  */
 @Composable
-fun ScreenColumn(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun ScreenColumn(modifier: Modifier = Modifier, gap: androidx.compose.ui.unit.Dp = 16.dp, content: @Composable ColumnScope.() -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = modifier
@@ -56,7 +40,7 @@ fun ScreenColumn(modifier: Modifier = Modifier, content: @Composable ColumnScope
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(gap),
             content = content,
         )
     }
@@ -65,7 +49,7 @@ fun ScreenColumn(modifier: Modifier = Modifier, content: @Composable ColumnScope
 @Composable
 fun SectionLabel(text: String) = Text(
     text.uppercase(),
-    style = MaterialTheme.typography.labelMedium,
+    fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, letterSpacing = 1.sp,
     color = MaterialTheme.colorScheme.onSurfaceVariant,
 )
 
@@ -73,7 +57,7 @@ fun SectionLabel(text: String) = Text(
 fun BackLink(onClick: () -> Unit, label: String = "Back") = TextButton(
     onClick = onClick,
     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText),
-) { IconLabel(Icons.AutoMirrored.Filled.ArrowBack, label) }
+) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { DIcon(DI.Back, tint = MaterialTheme.lanPlayColors.accentText, size = 20.dp); Text(label) } }
 
 /** A label on the left and its control on the right. Every setting in the app uses this. */
 @Composable
@@ -88,42 +72,44 @@ fun SettingRow(label: String, modifier: Modifier = Modifier, control: @Composabl
 fun CheckRow(label: String, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) =
     SettingRow(label) { Checkbox(checked = checked, onCheckedChange = onChange, enabled = enabled) }
 
-/** "-  30s  +" control. */
+/** "-  30 s  +" control inside a bordered row, as in the lobby design. */
 @Composable
 fun StepperRow(label: String, value: String, enabled: Boolean, onMinus: () -> Unit, onPlus: () -> Unit) =
-    SettingRow(label) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = onMinus, enabled = enabled, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp), modifier = Modifier.widthIn(min = 40.dp)) { Text("−") }
-            Text(value, style = MaterialTheme.typography.titleMedium, modifier = Modifier.widthIn(min = 56.dp).padding(horizontal = 6.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            OutlinedButton(onClick = onPlus, enabled = enabled, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp), modifier = Modifier.widthIn(min = 40.dp)) { Text("+") }
+    Panel(Modifier) {
+        Row(Modifier.heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(label, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, modifier = Modifier.weight(1f))
+            if (enabled) StepButton("−", onMinus)
+            Text(value, fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.widthIn(min = 52.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            if (enabled) StepButton("+", onPlus)
         }
     }
 
-/** Solid, rounded icons with a game feel, keyed by the icon name the call sites already use. */
-private fun gameIcon(name: String): androidx.compose.ui.graphics.vector.ImageVector {
-    val r = androidx.compose.material.icons.Icons.Rounded
-    val m = androidx.compose.material.icons.Icons.AutoMirrored.Rounded
-    return when (name) {
-        "Filled.Star" -> r.SportsEsports
-        "Filled.Info" -> r.MenuBook
-        "Filled.Home" -> r.Casino
-        "Filled.Person" -> r.Groups
-        "Filled.PlayArrow" -> r.PlayArrow
-        "Filled.Add" -> r.Style
-        "Filled.Check" -> r.Check
-        "Filled.Close" -> r.Close
-        "Filled.Refresh" -> r.Casino
-        "Filled.Search" -> r.QrCodeScanner
-        "Filled.Warning" -> r.Bolt
-        "Filled.Settings" -> r.Settings
-        "AutoMirrored.Filled.ArrowBack" -> m.ArrowBack
-        "AutoMirrored.Filled.ArrowForward" -> m.ArrowForward
-        "AutoMirrored.Filled.ExitToApp" -> m.ExitToApp
-        else -> r.Star
-    }
+@Composable
+private fun StepButton(sign: String, onClick: () -> Unit) = androidx.compose.material3.Surface(
+    onClick = onClick, modifier = Modifier.size(44.dp), shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant,
+) { Box(contentAlignment = Alignment.Center) { Text(sign, fontSize = 20.sp) } }
+
+/** Design line icons keyed by the icon name the call sites already use. */
+private fun gameIcon(name: String): androidx.compose.ui.graphics.vector.ImageVector = when (name) {
+    "Filled.Star" -> DI.Tour
+    "Filled.Info" -> DI.Book
+    "Filled.Home" -> DI.Host
+    "Filled.Person" -> DI.Join
+    "Filled.PlayArrow" -> DI.Play
+    "Filled.Add" -> DI.DrawCard
+    "Filled.Check" -> DI.Check
+    "Filled.Close" -> DI.Close
+    "Filled.Refresh" -> DI.Spinner
+    "Filled.Search" -> DI.Scan
+    "Filled.Warning" -> DI.Torch
+    "Filled.Settings" -> DI.Sliders
+    "AutoMirrored.Filled.ArrowBack" -> DI.Back
+    "AutoMirrored.Filled.ArrowForward" -> DI.Right
+    "AutoMirrored.Filled.ExitToApp" -> DI.Leave
+    else -> DI.Right
 }
 
-/** A button label with a solid game-style icon in front, so buttons read at a glance. */
+/** A button label with one of the design's line icons in front. */
 @androidx.compose.runtime.Composable
 fun IconLabel(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
