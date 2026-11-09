@@ -93,9 +93,13 @@ private fun GameFlow(client: GameClient) {
         client.messages.collect { android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show() }
     }
     when {
-        s == null -> ScreenColumn {
-            Text(if (status is ConnectionStatus.Failed) (status as ConnectionStatus.Failed).reason else "Connecting...", style = MaterialTheme.typography.titleLarge)
-            OutlinedButton(onClick = { Session.leave() }) { IconLabel(Icons.Filled.Close, "Cancel") }
+        s == null -> ScreenColumn(gap = 20.dp) {
+            androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 56.dp))
+            Text(
+                if (status is ConnectionStatus.Failed) (status as ConnectionStatus.Failed).reason else "Connecting...",
+                fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 26.sp,
+            )
+            com.bumbaiya.lanplay.ui.components.BigButton("Cancel", { Session.leave() }, icon = com.bumbaiya.lanplay.ui.components.DI.Close, primary = false, height = 48.dp, fontSize = 16)
         }
         s.phase == Phase.Lobby -> LobbyScreen(client, s, onLeave = { Session.leave() })
         else -> TableScreen(client, s, onLeave = { Session.leave() })

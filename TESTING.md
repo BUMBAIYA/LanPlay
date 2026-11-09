@@ -1,8 +1,17 @@
 # Testing LanPlay on real phones
 
-What is already proven (no phones needed): 38 unit tests cover the rules, the multiplayer engine and the
-host/client over a real socket. On the emulator I also checked host -> lobby -> start -> turns with a
-second (bot) player. What can ONLY be proven on real devices is listed below.
+What is already proven (no phones needed): the unit tests cover the rules, the imagined-bracket checker, the
+multiplayer engine and the host/client over a real socket. Two emulators were also played against each other
+(host, join, lobby settings, target draw, turns, live row watching, catch window, false catch, round scores).
+What can ONLY be proven on real devices (hotspot, discovery, QR, haptics, sound) is listed below.
+
+## Two emulators on one Mac (no phones)
+Emulators cannot discover each other, so a debug build can connect straight to a host:
+1. Start two emulators. Install the app on both (`./gradlew :app:installDebug`).
+2. On the host emulator: `adb -s emulator-5554 forward tcp:8765 tcp:8765`, then host a game.
+3. On the other: `adb -s emulator-5556 shell am start -n com.bumbaiya.lanplay/.MainActivity --es lanplay_join 10.0.2.2:8765 --es lanplay_name Riya`
+4. Remove the forward (`adb -s emulator-5554 forward --remove-all`) before running the unit tests, or NetworkTest fails on the port.
+The `lanplay_join` shortcut only works in debuggable builds.
 
 ## Setup
 1. Phone A (host): turn on the hotspot. Phone B (and C...): join that hotspot's Wi-Fi.
@@ -13,7 +22,7 @@ second (bot) player. What can ONLY be proven on real devices is listed below.
 - [ ] B: Join a game > type the room ID > Join room. (Relies on mDNS discovery. If "not found", use the QR step.)
 - [ ] B: Join a game > Scan QR code > scan A's QR. (First use downloads Google's scanner module; needs Play services.)
 - [ ] Rooms nearby list on B's Join screen shows the room by itself.
-- [ ] Lobby: both phones see each other, Ready toggles sync, admin changes settings and B sees them update.
+- [ ] Lobby: both phones see each other, Ready toggles sync. Only the admin sees Change settings; changes show on B.
 - [ ] Start is disabled until 2+ players are all ready.
 - [ ] A random player draws the target (1-3 cards, their choice).
 - [ ] Turns: draw one card, build with drag and drop (hold a number over another to raise it), tap + / - to tilt, tap `*` to cycle its operator, Submit, Pass.
@@ -27,5 +36,5 @@ second (bot) player. What can ONLY be proven on real devices is listed below.
 ## Known gaps
 - Host must keep the app open (a foreground service keeps it alive, but battery savers can still kill it).
 - If a hotspot blocks multicast, typing the room ID will not find the room. Use the QR code.
-- Sound is basic beeps (no audio files yet); animations: card tilt only so far.
-- No app icon/branding yet, no results history.
+- Sound is basic beeps (no audio files yet). No results history.
+- The QR scanner is Google's own scanner screen, not the camera frame drawn in the design.

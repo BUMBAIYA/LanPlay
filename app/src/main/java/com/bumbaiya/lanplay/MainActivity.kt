@@ -18,6 +18,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        debugJoin(intent)
         setContent {
             val theme by Session.settings.theme.collectAsState()
             LanPlayTheme(themeMode = theme) {
@@ -26,5 +27,24 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        debugJoin(intent)
+    }
+
+    /**
+     * Test helper for emulators, which cannot discover each other: connect straight to a host.
+     * adb shell am start -n com.bumbaiya.lanplay/.MainActivity --es lanplay_join 10.0.2.2:8765 --es lanplay_name Riya
+     * Only works in debuggable builds, so it is not in the released app.
+     */
+    private fun debugJoin(intent: android.content.Intent?) {
+        if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE == 0) return
+        val target = intent?.getStringExtra("lanplay_join") ?: return
+        val host = target.substringBefore(':')
+        val port = target.substringAfter(':', "8765").toIntOrNull() ?: 8765
+        Session.init(this)
+        Session.join(com.bumbaiya.lanplay.net.JoinLink("DEBUG", host, port), intent.getStringExtra("lanplay_name") ?: "Riya")
     }
 }

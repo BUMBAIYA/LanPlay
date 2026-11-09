@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -82,11 +83,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-private val CatchRed = Color(0xFFF26B5B)
-private val CatchText = Color(0xFFF5A196)
-private val CatchBanner = Color(0xFF2A1714)
-private val CatchBannerBorder = Color(0xFF5A2A24)
-private val CatchButton = Color(0xFF3A1F1C)
 
 @Composable
 fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
@@ -247,13 +243,13 @@ private fun Opponents(state: GameState, phase: Phase.Turns, now: Long, myId: Str
                         }
                         when {
                             window != null && !iAmOut -> Surface(
-                                onClick = { onCatch(p.id) }, shape = RoundedCornerShape(10.dp), color = CatchButton,
+                                onClick = { onCatch(p.id) }, shape = RoundedCornerShape(10.dp), color = MaterialTheme.lanPlayColors.dangerContainer,
                                 modifier = Modifier.size(52.dp, 44.dp),
-                            ) { Box(contentAlignment = Alignment.Center) { Text("Catch", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = CatchText) } }
+                            ) { Box(contentAlignment = Alignment.Center) { Text("Catch", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.lanPlayColors.onDangerContainer) } }
                             !p.connected -> Text("Offline", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             out -> Text("Out", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             turn -> Text("Playing", fontSize = 12.sp, color = MaterialTheme.lanPlayColors.accentText, modifier = Modifier.pulse())
-                            else -> Text("Passed", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            else -> Text("Waiting", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -333,14 +329,14 @@ private fun CatchView(client: GameClient, state: GameState, victimId: String, na
     ScreenColumn(gap = 16.dp) {
         Header("Catch $name", onBack = onCancel)
         Row(
-            Modifier.fillMaxWidth().background(CatchBanner, RoundedCornerShape(16.dp)).border(1.dp, CatchBannerBorder, RoundedCornerShape(16.dp)).padding(horizontal = 16.dp, vertical = 12.dp),
+            Modifier.fillMaxWidth().background(MaterialTheme.lanPlayColors.dangerContainer, RoundedCornerShape(16.dp)).border(1.dp, MaterialTheme.lanPlayColors.danger.copy(alpha = 0.35f), RoundedCornerShape(16.dp)).padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
                 Text("$name passed on $target", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Catch window closes in $secs s", fontSize = 14.sp, color = CatchText)
+                Text("Catch window closes in $secs s", fontSize = 14.sp, color = MaterialTheme.lanPlayColors.onDangerContainer)
             }
-            TimerRing(secs, total, CatchRed, 56.dp)
+            TimerRing(secs, total, MaterialTheme.lanPlayColors.danger, 56.dp)
         }
         ExpressionBuilder(
             state = builder, engineHand = { builder.allCards().toEngineHand() }, target = target,
@@ -351,7 +347,7 @@ private fun CatchView(client: GameClient, state: GameState, victimId: String, na
             proofHint = "Arrange $name's cards to reach $target. The result isn't calculated for you; the host checks it when you call DHAPPA.",
             actions = { submit, _, _ ->
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    BigButton("DHAPPA!", submit, icon = DI.Torch, container = CatchRed, content = Color(0xFF2A0F0B), height = 56.dp, fontSize = 20)
+                    BigButton("DHAPPA!", submit, icon = DI.Torch, container = MaterialTheme.lanPlayColors.danger, content = MaterialTheme.lanPlayColors.onDanger, height = 56.dp, fontSize = 20)
                     Text("A valid catch puts $name out of the round and gives you 3 points.", fontSize = 13.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth())
                 }
             },
@@ -377,7 +373,7 @@ private fun ScoresView(client: GameClient, state: GameState, myId: String, isAdm
     val ordered = state.players.sortedByDescending { it.score }
 
     ScreenColumn(gap = 16.dp) {
-        if (winnerId == myId) Confetti()
+        if (winnerId == myId) Box(Modifier.height(0.dp)) { Confetti(Modifier.fillMaxWidth().requiredHeight(160.dp)) }
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             SectionLabel(if (finished != null) "Series complete" else "Round ${state.round} complete")
             Text(title, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 32.sp)
@@ -398,12 +394,12 @@ private fun ScoresView(client: GameClient, state: GameState, myId: String, isAdm
                     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text("${i + 1}. ${if (p.id == myId) "You" else p.name}", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                            if (caught) Text("  · caught", fontSize = 13.sp, color = CatchText)
+                            if (caught) Text("  · out", fontSize = 13.sp, color = MaterialTheme.lanPlayColors.onDangerContainer)
                             Spacer(Modifier.weight(1f))
                             if (gain > 0) Text("+$gain  ", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.lanPlayColors.accentText)
                             Text("$shown", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 24.sp)
                         }
-                        val barColor = when { caught -> CatchRed; leader -> MaterialTheme.colorScheme.primary; else -> Color(0xFF4DA3FF) }
+                        val barColor = when { caught -> MaterialTheme.lanPlayColors.danger; leader -> MaterialTheme.colorScheme.primary; else -> Color(0xFF4DA3FF) }
                         Box(Modifier.fillMaxWidth().height(8.dp).background(MaterialTheme.lanPlayColors.cardBorder, RoundedCornerShape(4.dp))) {
                             Box(Modifier.fillMaxWidth(fill).height(8.dp).background(barColor, RoundedCornerShape(4.dp)))
                         }
