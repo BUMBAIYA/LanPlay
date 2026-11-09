@@ -75,15 +75,15 @@ class ExpressionEvaluatorTest {
 
     @Test fun sigmaAddsTwoOrMoreWithOneCard() {
         val h = Hand(listOf(1, 2, 3, 4), listOf(Op.Sigma))
-        assertEquals(Rational.of(10), value("S(1,2,3,4)", h))
-        assertEquals(Rational.of(3), value("S(1,2)", h))
-        assertTrue(isInvalid("S(1)", h))
+        assertEquals(Rational.of(10), value("S1234", h))
+        assertEquals(Rational.of(3), value("S12", h))
+        assertTrue(isInvalid("S1", h))
     }
 
     @Test fun piMultipliesTwoOrMoreWithOneCard() {
         val h = Hand(listOf(2, 3, 4), listOf(Op.Pi))
-        assertEquals(Rational.of(24), value("P(2,3,4)", h))
-        assertTrue(isInvalid("P(2)", h))
+        assertEquals(Rational.of(24), value("P234", h))
+        assertTrue(isInvalid("P2", h))
     }
 
     @Test fun plainOperatorsTakeExactlyTwoNumbers() {

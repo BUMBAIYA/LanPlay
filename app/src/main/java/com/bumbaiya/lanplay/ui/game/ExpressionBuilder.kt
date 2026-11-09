@@ -175,9 +175,9 @@ fun ExpressionBuilder(
             FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 state.hand.forEach { card -> HandCard(card, drag, state, { drag = it }, { drop(it) }, { cardPx = it }, origin) }
             }
-            Text("BRACKETS AND COMMA", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("BRACKETS", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                listOf("(", ")", ",").forEachIndexed { i, g ->
+                listOf("(", ")").forEachIndexed { i, g ->
                     HandCard(BCard(-1 - i, g, CardKind.Operator, free = true), drag, state, { drag = it }, { drop(it) }, { cardPx = it }, origin)
                 }
             }

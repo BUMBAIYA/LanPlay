@@ -52,7 +52,7 @@ private val Steps = listOf(
     TourStep("Flip a card", "Tap the card to flip it from + to ×.", true),
     TourStep("Make 12", "Drag cards into your row, then tap Submit.", true),
     TourStep("Power up", "Hold a number over another for a power. Every answer still needs an operator, so add + 0. Make 64!", true),
-    TourStep("Σ and Π", "Σ adds many numbers. Π multiplies many. Make 24!", true),
+    TourStep("Σ and Π", "Π multiplies all the numbers after it. Place Π, then 2 3 4. Make 24!", true),
     TourStep("DHAPPA!", "Someone passed? Catch them! Build the target from their cards. Right: +3 points. Wrong: you're out!", false),
     TourStep("You're ready!", "Grab your friends and play!", false),
 )
@@ -90,7 +90,7 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
                     4 -> Practice(listOf(num(1, "4"), num(2, "3"), num(3, "0"), plus(4)), 64, "Drag the 3 onto the 4, then add + 0.") { done = true }
                     5 -> Practice(
                         listOf(num(1, "2"), num(2, "3"), num(3, "4"), BCard(4, "Π", CardKind.Operator, op = Op.Pi)), 24,
-                        "Π ( 2 , 3 , 4 )",
+                        "Π 2 3 4 = 2 × 3 × 4",
                     ) { done = true }
                     else -> {}
                 }

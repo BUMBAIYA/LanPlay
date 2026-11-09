@@ -77,11 +77,11 @@ fun HowToPlayScreen(onBack: () -> Unit) {
                 DeckCard("√", CardKind.Operator)
                 WildDemo()
             }
-            Bullet("Π multiplies two or more numbers: Π ( 2 , 3 , 4 ) = 24")
-            Bullet("Σ adds two or more numbers: Σ ( 1 , 2 , 3 ) = 6")
+            Bullet("Π multiplies all the number cards after it, two or more: Π 2 3 4 = 24")
+            Bullet("Σ adds all the number cards after it, two or more: Σ 1 2 3 = 6")
             Bullet("√ is the square root: √ 9 = 3 (it must come out exact)")
             Bullet("* is wild: tap it to choose any operator you like")
-            Bullet("Brackets and commas are free. Use brackets to group, commas to separate the numbers inside Σ and Π.")
+            Bullet("Brackets are free. Use them to group, like (3 + 4) × 2.")
         }
 
         Step("6", "Power") {

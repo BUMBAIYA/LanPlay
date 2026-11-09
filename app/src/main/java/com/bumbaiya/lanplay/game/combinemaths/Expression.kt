@@ -25,8 +25,9 @@ sealed interface EvalResult {
  *   digits 0-9    number cards. Digits side by side join into one number (3 4 = 34).
  *   + -           the "+" card (add) and the "-" card (subtract)
  *   x /           the "+" card tilted (multiply) and the "-" card tilted (divide)
- *   S(a,b,c) P(a,b,c)  the Sigma card (adds two or more numbers) and the Pi card (multiplies
- *                 two or more numbers). Each is one card however many numbers it takes.
+ *   S123 P234     the Sigma card (adds the number cards after it) and the Pi card (multiplies
+ *                 them). Each is one card however many numbers it takes, at least two.
+ *                 Digits after S or P are separate numbers: S123 = 1+2+3.
  *   r             the square-root card, applied to what follows it: r9 = 3, r(4+5) = 3
  *   ^             power: one number card placed over another, 4^3 = 64. Both must be single
  *                 cards (not joined digits or brackets). Needs no operator card.
@@ -133,22 +134,25 @@ object ExpressionEvaluator {
         }
 
         /** Sigma / Pi: S(1,2,3) adds, P(2,3,4) multiplies. Needs at least two numbers. */
+        /**
+         * Sigma / Pi: take every number card that follows them, each as its own number
+         * (S123 = 1+2+3, P234 = 2x3x4). A number may carry a raised power (S2^3 4).
+         */
         private fun multiArg(): Rational? {
             val isSum = s[i++] == 'S'
-            if (i >= s.length || s[i] != '(') return fail("Write the numbers in brackets, like S(1,2,3)")
-            i++
-            val first = sum() ?: return null
-            var acc = first
-            var count = 1
-            while (i < s.length && s[i] == ',') {
-                i++
-                val next = sum() ?: return null
-                acc = if (isSum) acc + next else acc * next
+            var acc: Rational? = null
+            var count = 0
+            while (i < s.length && s[i].isDigit()) {
+                var term = Rational.of((s[i++] - '0').toLong())
+                if (i + 1 < s.length && s[i] == '^' && s[i + 1].isDigit()) {
+                    i++
+                    val e = Rational.of((s[i++] - '0').toLong())
+                    term = term.powOrNull(e) ?: return fail("Power not allowed")
+                }
+                acc = if (acc == null) term else if (isSum) acc + term else acc * term
                 count++
             }
-            if (count < 2) return fail("Sigma and Pi need two or more numbers")
-            if (i >= s.length || s[i] != ')') return fail("Missing )")
-            i++
+            if (count < 2) return fail("Sigma and Pi need two or more number cards after them")
             lastWasSingleCard = false
             return acc
         }
