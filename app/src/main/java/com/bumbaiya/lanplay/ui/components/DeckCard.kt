@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
+import com.bumbaiya.lanplay.ui.theme.Baloo
 import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 
 /** Number cards are blue, operator cards are red, like the physical deck. */
@@ -93,7 +93,7 @@ fun DeckCard(
                 Text(
                     text = altGlyph,
                     color = colors.cardOperator.copy(alpha = 0.45f),
-                    fontFamily = SpaceGrotesk,
+                    fontFamily = Baloo,
                     fontSize = size.glyph * 0.55f,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     modifier = androidx.compose.ui.Modifier
@@ -105,7 +105,7 @@ fun DeckCard(
                 modifier = if (altGlyph != null) androidx.compose.ui.Modifier.padding(end = 6.dp, top = 2.dp) else androidx.compose.ui.Modifier,
                 text = glyph,
                 color = if (kind == CardKind.Number) colors.cardNumber else colors.cardOperator,
-                fontFamily = SpaceGrotesk,
+                fontFamily = Baloo,
                 fontSize = size.glyph,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
             )
