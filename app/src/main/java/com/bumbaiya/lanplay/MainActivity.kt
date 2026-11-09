@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
      */
     private fun debugJoin(intent: android.content.Intent?) {
         if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE == 0) return
+        if (intent?.getBooleanExtra("lanplay_fixed", false) == true) { Session.init(this); Session.debugFixedCards = true }
         val target = intent?.getStringExtra("lanplay_join") ?: return
         val host = target.substringBefore(':')
         val port = target.substringAfter(':', "8765").toIntOrNull() ?: 8765

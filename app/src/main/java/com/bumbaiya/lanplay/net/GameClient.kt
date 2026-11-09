@@ -54,7 +54,7 @@ class GameClient(private val scope: CoroutineScope) {
     /** Short messages from the host such as "It is not your turn". Show them as toasts. */
     val messages: SharedFlow<String> = _messages
 
-    fun connect(host: String, port: Int, name: String, maxRetries: Int = 20) {
+    fun connect(host: String, port: Int, name: String, maxRetries: Int = 8) {
         closed = false
         _status.value = ConnectionStatus.Connecting
         job = scope.launch {

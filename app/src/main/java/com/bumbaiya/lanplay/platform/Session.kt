@@ -46,6 +46,14 @@ object Session {
 
     fun clearError() { _error.value = null }
 
+    /** Debug-only: every number is 0 and every operator +, so a test can score with "0+0" against target 0. */
+    var debugFixedCards = false
+
+    private object FixedRandom : kotlin.random.Random() {
+        override fun nextBits(bitCount: Int) = 0
+        override fun nextInt(from: Int, until: Int) = from
+    }
+
     fun host(name: String) {
         if (_busy.value) return
         scope.launch {
@@ -53,7 +61,7 @@ object Session {
             leave()
             try {
                 val room = RoomIds.generate()
-                val s = HostServer(room)
+                val s = HostServer(room, if (debugFixedCards) com.bumbaiya.lanplay.game.combinemaths.GameEngine(FixedRandom) else com.bumbaiya.lanplay.game.combinemaths.GameEngine())
                 val port = withContext(Dispatchers.IO) { s.start() }
                 server = s
                 val ip = withContext(Dispatchers.IO) { LocalAddress.find() }

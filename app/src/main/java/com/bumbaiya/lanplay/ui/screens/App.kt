@@ -8,6 +8,7 @@ import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -93,6 +94,15 @@ private fun GameFlow(client: GameClient) {
         client.messages.collect { android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show() }
     }
     when {
+        s != null && status is ConnectionStatus.Failed -> ScreenColumn(gap = 20.dp) {
+            androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 56.dp))
+            Text(
+                "The host left the game", fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 26.sp,
+            )
+            Text((status as ConnectionStatus.Failed).reason + ". The room has closed.", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            com.bumbaiya.lanplay.ui.components.BigButton("Back to home", { Session.leave() }, icon = com.bumbaiya.lanplay.ui.components.DI.Close, height = 56.dp)
+        }
         s == null -> ScreenColumn(gap = 20.dp) {
             androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 56.dp))
             Text(
@@ -105,7 +115,13 @@ private fun GameFlow(client: GameClient) {
         else -> TableScreen(client, s, onLeave = { Session.leave() })
     }
     if (s != null && status is ConnectionStatus.Reconnecting) {
-        Text("Reconnecting...", modifier = Modifier.padding(8.dp), color = MaterialTheme.colorScheme.error)
+        Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.TopCenter) {
+            Text(
+                "Reconnecting…", fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onError,
+                modifier = Modifier.background(MaterialTheme.colorScheme.error, androidx.compose.foundation.shape.RoundedCornerShape(50)).padding(horizontal = 14.dp, vertical = 6.dp),
+            )
+        }
     }
 }
 
