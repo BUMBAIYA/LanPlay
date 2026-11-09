@@ -107,7 +107,7 @@ fun JoinScreen(onBack: () -> Unit) {
                 }
             }
             TextBox(
-                room, { room = it.uppercase().filter { c -> c.isLetterOrDigit() }.take(4) }, height = 48.dp,
+                room, { room = it.uppercase().filter { c -> c.isLetterOrDigit() }.take(4) }, placeholder = "Type the room ID here", height = 48.dp,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters, imeAction = ImeAction.Go),
                 keyboardActions = KeyboardActions(onGo = { if (name.isNotBlank() && room.length == 4) { Session.settings.setName(name); Session.joinByRoom(room, name) } }),
             )

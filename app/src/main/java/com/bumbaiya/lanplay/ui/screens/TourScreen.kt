@@ -67,9 +67,9 @@ private val Steps = listOf(
     TourStep("Hit the target!", "Make the target number before your friends do. Let's try it!", false),
     TourStep("Pick the target", "Draw 1 to 3 number cards. Side by side, they make the target.", true),
     TourStep("Flip a card", "Tap the card to flip it from + to ×.", true),
-    TourStep("Make 12", "Drag cards into your row, then tap Submit.", true),
+    TourStep("Make 12", "Tap cards to add them to your row, then Submit.", true),
     TourStep("Power up", "Hold a number over another for a power. Every answer still needs an operator, so add + 0. Make 64!", true),
-    TourStep("Σ and Π", "Π multiplies all the numbers after it. Place Π, then 2 3 4. Make 24!", true),
+    TourStep("Σ and Π", "Π multiplies the numbers after it. Add Π, then 2, 3 and 4. Make 24!", true),
     TourStep("DHAPPA!", "Someone passed? Catch them! Build the target from their cards. Right: +3 points. Wrong: you're out!", false),
     TourStep("You're ready!", "Grab your friends and play!", false),
 )
