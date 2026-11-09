@@ -52,6 +52,10 @@ sealed interface Phase {
     @Serializable @SerialName("finished") data class Finished(val winnerId: String) : Phase
 }
 
+/** One slot of the row a player is building, as others see it live: the face showing, plus a raised card if any. */
+@Serializable
+data class RowSlot(val glyph: String, val raised: String? = null)
+
 /** After a player passes (or times out), others may catch them until [closesAt]. */
 @Serializable
 data class CatchWindow(val playerId: String, val closesAt: Long)
@@ -67,6 +71,8 @@ data class GameState(
     val target: List<Int> = emptyList(),
     val hands: Map<String, RoundPlayer> = emptyMap(),
     val catchWindows: List<CatchWindow> = emptyList(),
+    /** What the current player is building right now, so everyone can watch. Cleared when the turn ends. */
+    val liveRow: List<RowSlot> = emptyList(),
     val round: Int = 0,
     val nextCardId: Int = 1,
     /** Last event in words, shown to everyone ("Asha was caught!"). */
@@ -90,6 +96,8 @@ sealed interface Intent {
     @Serializable @SerialName("stopTarget") data object StopTarget : Intent
     @Serializable @SerialName("draw") data class DrawCard(val number: Boolean) : Intent
     @Serializable @SerialName("submit") data class Submit(val expression: String) : Intent
+    /** The current player's row as it changes, so others can watch. Purely for show: the host never judges it. */
+    @Serializable @SerialName("preview") data class Preview(val row: List<RowSlot>) : Intent
     @Serializable @SerialName("pass") data object Pass : Intent
     @Serializable @SerialName("catch") data class Catch(val targetId: String, val expression: String) : Intent
     @Serializable @SerialName("nextRound") data object NextRound : Intent

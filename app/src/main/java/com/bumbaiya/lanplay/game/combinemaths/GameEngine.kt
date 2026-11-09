@@ -77,6 +77,7 @@ class GameEngine(private val random: Random = Random.Default) {
                 ))
             }
             is Intent.Submit -> turnOnly(live, playerId) { submit(live, me, intent.expression, now) }
+            is Intent.Preview -> turnOnly(live, playerId) { ok(live.copy(liveRow = intent.row.take(MAX_PREVIEW_SLOTS))) }
             Intent.Pass -> turnOnly(live, playerId) { turns ->
                 if (!turns.hasDrawn) Outcome.Rejected("Draw a card before passing")
                 else ok(endTurn(live, now, passed = true, notice = "${me.name} passed"))
@@ -91,7 +92,7 @@ class GameEngine(private val random: Random = Random.Default) {
                 playerId != live.adminId -> Outcome.Rejected("Only the admin can do that")
                 live.phase !is Phase.Finished && live.phase !is Phase.RoundEnd -> Outcome.Rejected("The game is still running")
                 else -> ok(live.copy(
-                    phase = Phase.Lobby, target = emptyList(), hands = emptyMap(), catchWindows = emptyList(), round = 0,
+                    phase = Phase.Lobby, target = emptyList(), hands = emptyMap(), catchWindows = emptyList(), liveRow = emptyList(), round = 0,
                     players = live.players.filter { it.connected }.map { it.copy(score = 0, ready = false) },
                     notice = "Back in the lobby",
                 ))
@@ -122,7 +123,7 @@ class GameEngine(private val random: Random = Random.Default) {
         }
         val drawer = s.players.filter { it.connected }.random(random)
         return bump(state.copy(
-            round = s.round + 1, hands = hands, catchWindows = emptyList(), target = emptyList(),
+            round = s.round + 1, hands = hands, catchWindows = emptyList(), liveRow = emptyList(), target = emptyList(),
             phase = Phase.DrawingTarget(drawer.id, emptyList()),
             notice = "${drawer.name} draws the target",
         ))
@@ -198,7 +199,7 @@ class GameEngine(private val random: Random = Random.Default) {
         var next: String
         do { i = (i + 1) % order.size; next = order[i] } while (next !in active)
         return bump(s.copy(
-            catchWindows = windows,
+            catchWindows = windows, liveRow = emptyList(),
             phase = Phase.Turns(next, hasDrawn = false, turnEndsAt = now + s.settings.turnSeconds * 1000L),
             notice = notice,
         ))
@@ -208,7 +209,7 @@ class GameEngine(private val random: Random = Random.Default) {
         val scored = if (winnerId == null) s.players else s.players.map { if (it.id == winnerId) it.copy(score = it.score + s.settings.roundWinPoints) else it }
         val leader = scored.maxByOrNull { it.score }
         val phase = if (leader != null && leader.score >= s.settings.winScore) Phase.Finished(leader.id) else Phase.RoundEnd(winnerId, reason)
-        return bump(s.copy(players = scored, phase = phase, catchWindows = emptyList(), notice = reason))
+        return bump(s.copy(players = scored, phase = phase, catchWindows = emptyList(), liveRow = emptyList(), notice = reason))
     }
 
     // ---------- helpers ----------
@@ -250,6 +251,7 @@ class GameEngine(private val random: Random = Random.Default) {
         const val MIN_PLAYERS = 2
         const val MAX_PLAYERS = 8
         const val MAX_TARGET_CARDS = 3
+        const val MAX_PREVIEW_SLOTS = 30
         private val OPERATOR_POOL = listOf(Op.Plus, Op.Minus, Op.Pi, Op.Sigma, Op.Sqrt, Op.Wild)
     }
 }

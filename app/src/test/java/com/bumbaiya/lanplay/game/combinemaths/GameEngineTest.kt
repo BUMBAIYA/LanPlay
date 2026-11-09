@@ -152,6 +152,16 @@ class GameEngineTest {
         assertTrue(s.players.all { it.score == 0 && !it.ready })
     }
 
+    @Test fun othersCanWatchTheCurrentPlayersRowAndItClearsWhenTheTurnEnds() {
+        val row = listOf(RowSlot("3"), RowSlot("×"), RowSlot("4", raised = "2"))
+        assertEquals("It is not your turn", rejected(engine.apply(inTurns(), "b", Intent.Preview(row), t0)))
+        var s = ok(engine.apply(inTurns(), "a", Intent.Preview(row), t0))
+        assertEquals(row, s.liveRow)
+        s = ok(engine.apply(s, "a", Intent.DrawCard(true), t0))
+        s = ok(engine.apply(s, "a", Intent.Pass, t0))
+        assertTrue(s.liveRow.isEmpty())
+    }
+
     @Test fun stateSurvivesAJsonRoundTrip() {
         val json = kotlinx.serialization.json.Json { classDiscriminator = "type" }
         val s = inTurns()

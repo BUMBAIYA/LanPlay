@@ -47,6 +47,10 @@ import com.bumbaiya.lanplay.ui.game.toBCard
 import com.bumbaiya.lanplay.ui.game.toEngineHand
 import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import com.bumbaiya.lanplay.game.combinemaths.RowSlot
+import com.bumbaiya.lanplay.ui.game.WatchedRow
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -118,6 +122,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             rp?.hand?.forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, size = DeckCardSize.Small, dimmed = rp.out) }
                         }
+                        if (turn && p.id != myId) WatchedRow(state.liveRow, p.name)
                         if (window != null && p.id != myId && !iAmOut && phase is Phase.Turns) {
                             val secs = ((window.closesAt - now) / 1000 + 1).coerceAtLeast(0)
                             Button(
@@ -183,6 +188,13 @@ private fun TurnsSection(
     LaunchedEffect(myCards.map { it.id }) {
         val have = builder.allCards().map { it.id }.toSet()
         myCards.filter { it.id !in have }.forEach { builder.addToHand(it.toBCard()) }
+    }
+    // While it's my turn, stream my row to everyone so they can watch me work. A short delay
+    // (collectLatest + delay) avoids sending an update for every pixel of a drag.
+    if (myTurn) LaunchedEffect(builder) {
+        androidx.compose.runtime.snapshotFlow { builder.slots.map { RowSlot(it.card.glyph, it.exp?.glyph) } }
+            .distinctUntilChanged()
+            .collectLatest { row -> delay(120); client.send(Intent.Preview(row)) }
     }
     if (iAmOut) { Text("You are out of this round. Watch for DHAPPA chances!", color = MaterialTheme.colorScheme.onSurfaceVariant); return }
     if (!myTurn) { Text("Plan your move. All cards are visible to everyone.", color = MaterialTheme.colorScheme.onSurfaceVariant); return }
