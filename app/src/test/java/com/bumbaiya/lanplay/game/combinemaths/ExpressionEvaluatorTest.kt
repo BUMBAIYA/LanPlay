@@ -29,6 +29,10 @@ class ExpressionEvaluatorTest {
         assertEquals(Rational.of(64 + 9 - 9), value("4^3+9-9", hand.copy(digits = listOf(4, 3, 9, 9))))
     }
 
+    @Test fun theTourPowerStepIsSolvable() {
+        assertEquals(Rational.of(64), value("4^3+0", Hand(listOf(4, 3, 0), listOf(Op.Plus))))
+    }
+
     @Test fun powerMatchesThePdfExamples() {
         assertEquals(Rational.of(64), value("4^3+r9-r9", Hand(listOf(4, 3, 9, 9), listOf(Op.Plus, Op.Sqrt, Op.Minus, Op.Sqrt))))
         assertEquals(Rational.of(81), value("3^4+3-3", Hand(listOf(3, 4, 3, 3), listOf(Op.Plus, Op.Minus))))

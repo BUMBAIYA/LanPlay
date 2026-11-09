@@ -90,7 +90,7 @@ fun HowToPlayScreen(onBack: () -> Unit) {
                 DeckCard("4", CardKind.Number)
                 DeckCard("3", CardKind.Number, size = DeckCardSize.Small, modifier = Modifier.align(Alignment.TopEnd).offset(x = 12.dp, y = (-10).dp))
             }
-            Body("That is 4³ = 64. Tap the small card to take the power off again. A power needs no operator card, but both cards must be single numbers.")
+            Body("That is 4³ = 64. Tap the small card to take the power off again. Both cards must be single numbers, and your answer still needs one operator card, for example 4³ + 0.")
         }
 
         Step("7", "Hit the target") {
