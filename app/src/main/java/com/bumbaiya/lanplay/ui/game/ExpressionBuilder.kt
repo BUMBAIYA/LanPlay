@@ -146,7 +146,7 @@ fun ExpressionBuilder(
                     enabled = !locked && enabled,
                     onClick = {
                         if (onSubmit != null) { onSubmit(state.expression()); locked = true; message = null; return@Button }
-                        val r = ExpressionEvaluator.evaluate(state.expression(), engineHand())
+                        val r = ExpressionEvaluator.evaluate(state.expression(), engineHand(), com.bumbaiya.lanplay.game.combinemaths.Rational.of(target))
                         if (r is EvalResult.Value && r.value.toString() == target.toString()) {
                             message = null
                             onHit()
@@ -174,12 +174,6 @@ fun ExpressionBuilder(
             Text("YOUR CARDS", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 state.hand.forEach { card -> HandCard(card, drag, state, { drag = it }, { drop(it) }, { cardPx = it }, origin) }
-            }
-            Text("BRACKETS", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                listOf("(", ")").forEachIndexed { i, g ->
-                    HandCard(BCard(-1 - i, g, CardKind.Operator, free = true), drag, state, { drag = it }, { drop(it) }, { cardPx = it }, origin)
-                }
             }
         }
 

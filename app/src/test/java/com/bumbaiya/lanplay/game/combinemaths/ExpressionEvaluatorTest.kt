@@ -29,6 +29,16 @@ class ExpressionEvaluatorTest {
         assertEquals(Rational.of(64 + 9 - 9), value("4^3+9-9", hand.copy(digits = listOf(4, 3, 9, 9))))
     }
 
+    @Test fun imaginedBracketsLetAnyGroupingHitTheTarget() {
+        val h = Hand(listOf(3, 4, 2), listOf(Op.Plus, Op.Minus))
+        // 3 + 4 x 2 is 11 by normal precedence but (3 + 4) x 2 is 14: allowed when 14 is the target.
+        val h2 = Hand(listOf(3, 4, 2), listOf(Op.Plus, Op.Plus))
+        assertEquals(Rational.of(14), (ExpressionEvaluator.evaluate("3+4x2", h2, Rational.of(14)) as EvalResult.Value).value)
+        assertEquals(Rational.of(11), (ExpressionEvaluator.evaluate("3+4x2", h2, Rational.of(11)) as EvalResult.Value).value)
+        assertTrue((ExpressionEvaluator.evaluate("3+4x2", h2, Rational.of(99)) as EvalResult.Value).value != Rational.of(99))
+        assertTrue(ExpressionEvaluator.evaluate("3+4", h, Rational.of(7)) is EvalResult.Value)
+    }
+
     @Test fun theTourPowerStepIsSolvable() {
         assertEquals(Rational.of(64), value("4^3+0", Hand(listOf(4, 3, 0), listOf(Op.Plus))))
     }

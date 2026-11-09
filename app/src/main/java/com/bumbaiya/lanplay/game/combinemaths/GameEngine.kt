@@ -216,7 +216,7 @@ class GameEngine(private val random: Random = Random.Default) {
 
     private fun hits(expression: String, rp: RoundPlayer, target: Long): Boolean {
         val hand = Hand(rp.hand.mapNotNull { it.digit }, rp.hand.mapNotNull { it.op })
-        val r = ExpressionEvaluator.evaluate(expression, hand)
+        val r = ExpressionEvaluator.evaluate(expression, hand, Rational.of(target))
         return r is EvalResult.Value && r.value == Rational.of(target)
     }
 

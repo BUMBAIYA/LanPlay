@@ -38,11 +38,21 @@ sealed interface EvalResult {
  */
 object ExpressionEvaluator {
 
-    fun evaluate(expression: String, hand: Hand): EvalResult {
+    /**
+     * Judges an expression. When a [target] is given and the text has no explicit brackets, the
+     * rules' "imagine brackets anywhere" applies: the answer counts if ANY grouping of the cards
+     * in the order placed reaches the target.
+     */
+    fun evaluate(expression: String, hand: Hand, target: Rational? = null): EvalResult {
         val text = expression.filterNot { it.isWhitespace() }
         if (text.isEmpty()) return EvalResult.Invalid("Empty expression")
 
         checkCards(text, hand)?.let { return EvalResult.Invalid(it) }
+
+        if (target != null && '(' !in text) {
+            val reachable = Groupings(text).values()
+            if (reachable != null && target in reachable) return EvalResult.Value(target)
+        }
 
         val parser = Parser(text)
         val value = parser.parseAll() ?: return EvalResult.Invalid(parser.error ?: "Invalid expression")
@@ -190,6 +200,97 @@ object ExpressionEvaluator {
                 return Rational.of(java.math.BigInteger(s.substring(start, i)), java.math.BigInteger.ONE)
             }
             return fail("Unexpected '${s[i]}'")
+        }
+    }
+
+    /**
+     * Every value the cards can make when brackets may go anywhere ("imagine brackets"). The text
+     * is split into pieces (numbers, Sigma/Pi groups, and the + - x / and square-root signs), then
+     * every way of grouping neighbouring pieces is tried. Returns null if the text is malformed.
+     */
+    private class Groupings(private val text: String) {
+        private sealed interface Tok
+        private class Num(val v: Rational) : Tok
+        private class Bin(val c: Char) : Tok
+        private object Root : Tok
+
+        private val toks = ArrayList<Tok>()
+        private val memo = HashMap<Long, Set<Rational>>()
+
+        private fun digitAt(i: Int) = i < text.length && text[i].isDigit()
+
+        private fun tokenize(): Boolean {
+            var i = 0
+            while (i < text.length) {
+                val c = text[i]
+                when {
+                    c.isDigit() -> {
+                        val start = i
+                        while (digitAt(i)) i++
+                        var v = Rational.of(java.math.BigInteger(text.substring(start, i)), java.math.BigInteger.ONE)
+                        if (i < text.length && text[i] == '^') {
+                            if (i - start != 1 || !digitAt(i + 1) || digitAt(i + 2)) return false
+                            v = v.powOrNull(Rational.of((text[i + 1] - '0').toLong())) ?: return false
+                            i += 2
+                        }
+                        toks += Num(v)
+                    }
+                    c == 'S' || c == 'P' -> {
+                        i++
+                        var acc: Rational? = null
+                        var count = 0
+                        while (digitAt(i)) {
+                            var t = Rational.of((text[i++] - '0').toLong())
+                            if (i + 1 < text.length && text[i] == '^' && digitAt(i + 1)) {
+                                t = t.powOrNull(Rational.of((text[i + 1] - '0').toLong())) ?: return false
+                                i += 2
+                            }
+                            acc = if (acc == null) t else if (c == 'S') acc + t else acc * t
+                            count++
+                        }
+                        if (count < 2) return false
+                        toks += Num(acc!!)
+                    }
+                    c == 'r' -> { toks += Root; i++ }
+                    c in "+-x/" -> { toks += Bin(c); i++ }
+                    else -> return false
+                }
+            }
+            return toks.isNotEmpty()
+        }
+
+        fun values(): Set<Rational>? {
+            if (!tokenize()) return null
+            return range(0, toks.size)
+        }
+
+        private fun range(from: Int, to: Int): Set<Rational> {
+            val key = from.toLong() * 1000 + to
+            memo[key]?.let { return it }
+            val out = HashSet<Rational>()
+            val first = toks[from]
+            if (to - from == 1) {
+                if (first is Num) out += first.v
+            } else {
+                if (first is Root) range(from + 1, to).forEach { r -> r.sqrtOrNull()?.let(out::add) }
+                for (k in from + 1 until to - 1) {
+                    val op = toks[k] as? Bin ?: continue
+                    val left = range(from, k)
+                    if (left.isEmpty()) continue
+                    val right = range(k + 1, to)
+                    for (a in left) for (b in right) {
+                        when (op.c) {
+                            '+' -> out += a + b
+                            '-' -> out += a - b
+                            'x' -> out += a * b
+                            else -> a.divOrNull(b)?.let(out::add)
+                        }
+                        if (out.size > 2000) break
+                    }
+                }
+            }
+            memo[key] = out
+            return out
         }
     }
 }

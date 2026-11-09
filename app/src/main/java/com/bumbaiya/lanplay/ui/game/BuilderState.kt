@@ -6,7 +6,7 @@ import com.bumbaiya.lanplay.ui.components.CardKind
 
 /**
  * One card in the builder. [glyph] is the ACTIVE face. Two-in-one cards also have [alt],
- * the face on the other side. [free] cards are brackets/commas: unlimited, not from the hand.
+ * the face on the other side. [free] cards are unlimited cards that do not come from the hand.
  */
 data class BCard(
     val id: Int,

@@ -81,7 +81,7 @@ fun HowToPlayScreen(onBack: () -> Unit) {
             Bullet("Σ adds all the number cards after it, two or more: Σ 1 2 3 = 6")
             Bullet("√ is the square root: √ 9 = 3 (it must come out exact)")
             Bullet("* is wild: tap it to choose any operator you like")
-            Bullet("Brackets are free. Use them to group, like (3 + 4) × 2.")
+            Bullet("No bracket cards: just imagine brackets anywhere. 3 + 4 × 2 counts as 14 if that is your target.")
         }
 
         Step("6", "Power") {
