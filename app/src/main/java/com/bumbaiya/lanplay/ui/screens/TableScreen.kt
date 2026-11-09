@@ -58,7 +58,9 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     val me by client.myId.collectAsState()
     val myId = me ?: return
     val phase = state.phase
-    val now by produceState(client.serverNow()) { while (true) { value = client.serverNow(); delay(250) } }
+    // The clock only changes once per second as far as the screen is concerned. Rounding down means the
+    // value is identical for 4 of every 5 checks, and Compose skips redrawing when a state doesn't change.
+    val now by produceState((client.serverNow() / 1000) * 1000) { while (true) { value = (client.serverNow() / 1000) * 1000; delay(200) } }
     var confirmLeave by remember { mutableStateOf(false) }
     var catching by remember { mutableStateOf<String?>(null) }
     val haptic = LocalHapticFeedback.current

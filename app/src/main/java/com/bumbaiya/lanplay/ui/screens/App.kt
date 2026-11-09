@@ -33,7 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-private enum class Screen { Games, GameMenu, Settings, Host, Join, Solo }
+private enum class Screen { Games, GameMenu, Settings, Host, Join, Solo, HowTo }
 
 /**
  * The app's navigation. If we're inside a multiplayer game, the game's phase decides what to show
@@ -45,7 +45,7 @@ fun LanPlayApp() {
     val client by Session.client.collectAsState()
     val inGame = client != null
     BackHandler(enabled = !inGame && screen != Screen.Games) {
-        screen = when (screen) { Screen.Solo, Screen.Host, Screen.Join -> Screen.GameMenu; else -> Screen.Games }
+        screen = when (screen) { Screen.Solo, Screen.Host, Screen.Join, Screen.HowTo -> Screen.GameMenu; else -> Screen.Games }
     }
     BackHandler(enabled = inGame) { Session.leave() }
 
@@ -53,10 +53,11 @@ fun LanPlayApp() {
     if (c != null) { GameFlow(c); return }
     when (screen) {
         Screen.Games -> GamesScreen(onOpen = { screen = Screen.GameMenu }, onSettings = { screen = Screen.Settings })
-        Screen.GameMenu -> GameMenuScreen(onBack = { screen = Screen.Games }, onSolo = { screen = Screen.Solo }, onHost = { screen = Screen.Host }, onJoin = { screen = Screen.Join })
+        Screen.GameMenu -> GameMenuScreen(onBack = { screen = Screen.Games }, onSolo = { screen = Screen.Solo }, onHost = { screen = Screen.Host }, onJoin = { screen = Screen.Join }, onHowTo = { screen = Screen.HowTo })
         Screen.Settings -> SettingsScreen(onBack = { screen = Screen.Games })
         Screen.Host -> HostScreen(onBack = { screen = Screen.GameMenu })
         Screen.Join -> JoinScreen(onBack = { screen = Screen.GameMenu })
+        Screen.HowTo -> HowToPlayScreen(onBack = { screen = Screen.GameMenu })
         Screen.Solo -> SoloScreen(onBack = { screen = Screen.GameMenu })
     }
 }
@@ -117,10 +118,13 @@ private fun GamesScreen(onOpen: () -> Unit, onSettings: () -> Unit) {
 }
 
 @Composable
-private fun GameMenuScreen(onBack: () -> Unit, onSolo: () -> Unit, onHost: () -> Unit, onJoin: () -> Unit) {
+private fun GameMenuScreen(onBack: () -> Unit, onSolo: () -> Unit, onHost: () -> Unit, onJoin: () -> Unit, onHowTo: () -> Unit) {
     ScreenColumn {
         BackLink(onBack)
         Text("Combine Maths", style = MaterialTheme.typography.headlineMedium)
+        OutlinedButton(onClick = onHowTo, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            Text("How to play", style = MaterialTheme.typography.titleMedium)
+        }
         Button(onClick = onHost, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text("Host a game", style = MaterialTheme.typography.titleMedium)
         }
