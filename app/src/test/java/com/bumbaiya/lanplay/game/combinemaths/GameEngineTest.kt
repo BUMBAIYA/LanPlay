@@ -17,6 +17,20 @@ class GameEngineTest {
         return s
     }
 
+    @Test fun adminCanKickAndOthersCannot() {
+        val s = lobby()
+        val after = ok(engine.apply(s, "a", Intent.Kick("b"), t0))
+        assertEquals(listOf("a", "c"), after.players.map { it.id })
+        assertEquals("Only the admin can remove players", rejected(engine.apply(s, "b", Intent.Kick("c"), t0)))
+        assertEquals("You cannot remove yourself", rejected(engine.apply(s, "a", Intent.Kick("a"), t0)))
+        assertEquals("That player is not in the room", rejected(engine.apply(s, "a", Intent.Kick("zz"), t0)))
+    }
+
+    @Test fun kickMidGameRemovesFromScoreboard() {
+        val after = ok(engine.apply(inTurns(), "a", Intent.Kick("c"), t0))
+        assertFalse(after.players.any { it.id == "c" })
+    }
+
     private fun ok(o: Outcome) = (o as Outcome.Ok).state
     private fun rejected(o: Outcome) = (o as Outcome.Rejected).reason
 

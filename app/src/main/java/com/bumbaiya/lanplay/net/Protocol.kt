@@ -25,4 +25,6 @@ sealed interface ServerMessage {
     @Serializable @SerialName("welcome") data class Welcome(val playerId: String, val seatToken: String, val state: GameState) : ServerMessage
     @Serializable @SerialName("state") data class State(val state: GameState) : ServerMessage
     @Serializable @SerialName("error") data class Error(val reason: String) : ServerMessage
+    /** The admin removed you from the room. */
+    @Serializable @SerialName("kicked") data class Kicked(val reason: String) : ServerMessage
 }

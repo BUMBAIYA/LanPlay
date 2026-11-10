@@ -75,6 +75,7 @@ class GameClient(private val scope: CoroutineScope) {
                                         _status.value = ConnectionStatus.Connected
                                     }
                                     is ServerMessage.State -> accept(m.state)
+                                    is ServerMessage.Kicked -> { _status.value = ConnectionStatus.Failed(m.reason); closed = true; close() }
                                     is ServerMessage.Error -> {
                                         _messages.tryEmit(m.reason)
                                         if (_myId.value == null) { // turned away at the door

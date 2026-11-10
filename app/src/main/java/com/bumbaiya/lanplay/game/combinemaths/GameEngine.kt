@@ -51,6 +51,12 @@ class GameEngine(private val random: Random = Random.Default) {
         val me = s.player(playerId) ?: return Outcome.Rejected("You are not in this room")
         val live = s.copy(catchWindows = s.catchWindows.filter { it.closesAt >= now })
         return when (intent) {
+            is Intent.Kick -> when {
+                playerId != live.adminId -> Outcome.Rejected("Only the admin can remove players")
+                intent.playerId == playerId -> Outcome.Rejected("You cannot remove yourself")
+                live.player(intent.playerId) == null -> Outcome.Rejected("That player is not in the room")
+                else -> ok(removePlayer(live, intent.playerId, now).let { if (live.phase == Phase.Lobby) it else it.copy(players = it.players.filterNot { p -> p.id == intent.playerId }) })
+            }
             is Intent.SetReady -> inLobby(live) { ok(it.copy(players = it.players.map { p -> if (p.id == playerId) p.copy(ready = intent.ready) else p })) }
             is Intent.UpdateSettings -> inLobby(live) {
                 if (playerId != it.adminId) Outcome.Rejected("Only the admin can change settings")

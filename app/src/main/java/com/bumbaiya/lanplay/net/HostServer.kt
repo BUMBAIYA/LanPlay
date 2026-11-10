@@ -2,6 +2,7 @@ package com.bumbaiya.lanplay.net
 
 import com.bumbaiya.lanplay.game.combinemaths.GameEngine
 import com.bumbaiya.lanplay.game.combinemaths.GameState
+import com.bumbaiya.lanplay.game.combinemaths.Intent
 import com.bumbaiya.lanplay.game.combinemaths.Outcome
 import com.bumbaiya.lanplay.game.combinemaths.Phase
 import io.ktor.server.application.install
@@ -44,6 +45,7 @@ class HostServer(
     private val lock = Mutex()
     private val sessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>()
     private val seatTokens = ConcurrentHashMap<String, String>() // token -> playerId
+    private val removedIds = ConcurrentHashMap.newKeySet<String>() // kicked players cannot reclaim their seat
     private var server: io.ktor.server.engine.EmbeddedServer<*, *>? = null
 
     private val _state = MutableStateFlow<GameState?>(null)
@@ -102,6 +104,7 @@ class HostServer(
             return null
         }
         val knownId = msg.seatToken?.let { seatTokens[it] }
+        if (knownId != null && knownId in removedIds) { reject(session, "The host removed you from this room"); return null }
         var current = _state.value
         val id: String
         val token: String
@@ -129,7 +132,12 @@ class HostServer(
     private suspend fun handleIntent(id: String, msg: ClientMessage.Do, session: DefaultWebSocketServerSession) = lock.withLock {
         val s = _state.value ?: return@withLock
         when (val o = engine.apply(s, id, msg.intent, clock())) {
-            is Outcome.Ok -> publish(o.state)
+            is Outcome.Ok -> {
+                val kicked = (msg.intent as? Intent.Kick)?.playerId
+                val kickedSession = kicked?.let { removedIds.add(it); sessions.remove(it) }
+                publish(o.state)
+                kickedSession?.let { send(it, ServerMessage.Kicked("The host removed you from this room")); runCatching { it.close() } }
+            }
             is Outcome.Rejected -> send(session, ServerMessage.Error(o.reason))
         }
     }

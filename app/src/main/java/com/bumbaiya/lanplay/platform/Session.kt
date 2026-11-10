@@ -66,7 +66,7 @@ object Session {
                 server = s
                 val ip = withContext(Dispatchers.IO) { LocalAddress.find() }
                 _hostLink.value = JoinLink(room, ip ?: "127.0.0.1", port)
-                discovery.advertise(room, port)
+                discovery.advertise(room, port, ip)
                 HostService.start(app, room)
                 connect("127.0.0.1", port, name)
             } catch (e: Exception) {
@@ -76,11 +76,18 @@ object Session {
         }
     }
 
+    private val _joining = MutableStateFlow<Pair<JoinLink, String>?>(null)
+    /** The room we are joining (and our name), so the connecting screen can show it and retry. */
+    val joining: StateFlow<Pair<JoinLink, String>?> = _joining
+
     fun join(link: JoinLink, name: String) {
         leave()
         _error.value = null
+        _joining.value = link to name
         connect(link.host, link.port, name)
     }
+
+    fun retryJoin() { _joining.value?.let { (l, n) -> join(l, n) } }
 
     /** Join by typing a room ID: searches the local network for it. */
     fun joinByRoom(room: String, name: String) {
@@ -102,6 +109,7 @@ object Session {
         _client.value?.close(); _client.value = null
         server?.stop(); server = null
         _hostLink.value = null
+        _joining.value = null
         discovery.stopAdvertising()
         HostService.stop(app)
     }

@@ -130,10 +130,11 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
 
     if (confirmLeave) AlertDialog(
         onDismissRequest = { confirmLeave = false },
+        containerColor = MaterialTheme.colorScheme.surface, titleContentColor = MaterialTheme.colorScheme.onSurface, textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         title = { Text("Leave the game?") },
         text = { Text(if (isAdmin) "You are the host. Leaving ends the game for everyone." else "You can rejoin using the room ID until the next round starts.") },
-        confirmButton = { TextButton(onClick = { confirmLeave = false; onLeave() }) { Text("Leave") } },
-        dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text("Stay") } },
+        confirmButton = { TextButton(onClick = { confirmLeave = false; onLeave() }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Close, tint = MaterialTheme.lanPlayColors.danger, size = 18.dp); Text("Leave", color = MaterialTheme.lanPlayColors.danger, fontWeight = FontWeight.SemiBold) } } },
+        dismissButton = { TextButton(onClick = { confirmLeave = false }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Check, tint = MaterialTheme.colorScheme.onSurface, size = 18.dp); Text("Stay", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold) } } },
     )
 }
 

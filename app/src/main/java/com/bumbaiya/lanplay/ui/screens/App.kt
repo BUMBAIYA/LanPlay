@@ -97,20 +97,13 @@ private fun GameFlow(client: GameClient) {
         s != null && status is ConnectionStatus.Failed -> ScreenColumn(gap = 20.dp) {
             androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 56.dp))
             Text(
-                "The host left the game", fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk,
+                if ((status as ConnectionStatus.Failed).reason.contains("removed")) "You were removed" else "The host left the game", fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 26.sp,
             )
-            Text((status as ConnectionStatus.Failed).reason + ". The room has closed.", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text((status as ConnectionStatus.Failed).reason.let { if (it.contains("removed")) "$it." else "$it. The room has closed." }, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             com.bumbaiya.lanplay.ui.components.BigButton("Back to home", { Session.leave() }, icon = com.bumbaiya.lanplay.ui.components.DI.Close, height = 56.dp)
         }
-        s == null -> ScreenColumn(gap = 20.dp) {
-            androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 56.dp))
-            Text(
-                if (status is ConnectionStatus.Failed) (status as ConnectionStatus.Failed).reason else "Connecting...",
-                fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 26.sp,
-            )
-            com.bumbaiya.lanplay.ui.components.BigButton("Cancel", { Session.leave() }, icon = com.bumbaiya.lanplay.ui.components.DI.Close, primary = false, height = 48.dp, fontSize = 16)
-        }
+        s == null -> ConnectingScreen(status)
         s.phase == Phase.Lobby -> LobbyScreen(client, s, onLeave = { Session.leave() })
         else -> TableScreen(client, s, onLeave = { Session.leave() })
     }
@@ -122,6 +115,51 @@ private fun GameFlow(client: GameClient) {
                 modifier = Modifier.background(MaterialTheme.colorScheme.error, androidx.compose.foundation.shape.RoundedCornerShape(50)).padding(horizontal = 14.dp, vertical = 6.dp),
             )
         }
+    }
+}
+
+/** Shown from tapping Join until the lobby arrives: which room, what is happening, and a way out. */
+@Composable
+private fun ConnectingScreen(status: ConnectionStatus) {
+    val target by Session.joining.collectAsState()
+    val failed = status as? ConnectionStatus.Failed
+    val link = target?.first
+    ScreenColumn(gap = 24.dp) {
+        androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 40.dp))
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Box(Modifier.size(88.dp), contentAlignment = Alignment.Center) {
+                if (failed == null) androidx.compose.material3.CircularProgressIndicator(Modifier.size(88.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 5.dp, trackColor = MaterialTheme.colorScheme.outline)
+                else Box(Modifier.size(88.dp).background(MaterialTheme.lanPlayColors.dangerContainer, androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
+                    com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Close, tint = MaterialTheme.lanPlayColors.onDangerContainer, size = 36.dp)
+                }
+            }
+            Text(
+                if (failed == null) "Joining room" else "Could not join",
+                fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 28.sp,
+            )
+            link?.takeIf { it.room != "DEBUG" }?.let {
+                Text(it.room, fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 40.sp, letterSpacing = 8.sp, color = MaterialTheme.lanPlayColors.accentText)
+            }
+            Text(
+                failed?.reason ?: "Connecting to the host…", fontSize = 16.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (link != null) com.bumbaiya.lanplay.ui.components.Panel(Modifier) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf("Host address" to "${link.host}:${link.port}", "Playing as" to (target?.second ?: "")).forEach { (k, v) ->
+                    Row(Modifier.fillMaxWidth().heightIn(min = 28.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(k, Modifier.weight(1f), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(v, fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 15.sp)
+                    }
+                }
+            }
+        }
+        if (failed != null) {
+            Text("Make sure both phones are on the same Wi-Fi or hotspot. Some Wi-Fi networks stop phones from talking to each other; if so, use the host's hotspot instead.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            com.bumbaiya.lanplay.ui.components.BigButton("Try again", { Session.retryJoin() }, icon = com.bumbaiya.lanplay.ui.components.DI.Join)
+        }
+        com.bumbaiya.lanplay.ui.components.BigButton(if (failed != null) "Back" else "Cancel", { Session.leave() }, icon = com.bumbaiya.lanplay.ui.components.DI.Close, primary = false, height = 52.dp, fontSize = 16)
     }
 }
 

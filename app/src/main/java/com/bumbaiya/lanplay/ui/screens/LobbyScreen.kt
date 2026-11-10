@@ -1,6 +1,8 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -61,6 +63,33 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     val waitingFor = state.players.firstOrNull { !it.ready }
 
     var editing by remember { mutableStateOf(false) }
+    var kickId by remember { mutableStateOf<String?>(null) }
+    var showQr by remember { mutableStateOf(false) }
+    state.player(kickId ?: "")?.let { who ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { kickId = null },
+            containerColor = MaterialTheme.colorScheme.surface, titleContentColor = MaterialTheme.colorScheme.onSurface, textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            title = { Text("Remove ${who.name}?") },
+            text = { Text("They will be taken out of the room. They can only join again by entering the room ID or scanning the QR code anew.") },
+            confirmButton = { androidx.compose.material3.TextButton({ client.send(Intent.Kick(who.id)); kickId = null }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Close, tint = MaterialTheme.lanPlayColors.danger, size = 18.dp); Text("Remove", color = MaterialTheme.lanPlayColors.danger, fontWeight = FontWeight.SemiBold) } } },
+            dismissButton = { androidx.compose.material3.TextButton({ kickId = null }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Check, tint = MaterialTheme.colorScheme.onSurface, size = 18.dp); Text("Keep", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold) } } },
+        )
+    }
+    link?.takeIf { showQr }?.let { l ->
+        androidx.compose.ui.window.Dialog({ showQr = false }) {
+            Column(
+                Modifier.background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp)).padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Text("Scan to join", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                val qr = remember(l) { QrCode.generate(l.toText()) }
+                Image(qr, "Large QR code to join room ${l.room}", Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(Color.White).padding(10.dp), filterQuality = androidx.compose.ui.graphics.FilterQuality.None)
+                Text(l.room, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 32.sp, letterSpacing = 6.sp, color = MaterialTheme.lanPlayColors.accentText)
+                Text("Or type this room ID on the Join screen.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                BigButton("Close", { showQr = false }, primary = false, height = 48.dp, fontSize = 16)
+            }
+        }
+    }
     if (editing && isAdmin) {
         ScreenColumn(gap = 12.dp) {
             Header("Game settings", { editing = false })
@@ -92,7 +121,10 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                 link?.let { l ->
                     // Only the host knows the address, so only the host shows the QR code.
                     val qr = remember(l) { QrCode.generate(l.toText()) }
-                    Image(qr, "QR code to join room ${l.room}", Modifier.size(76.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFFF2F4F7)).padding(8.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable { showQr = true }) {
+                        Image(qr, "QR code to join room ${l.room}. Tap to enlarge.", Modifier.size(76.dp).clip(RoundedCornerShape(10.dp)).background(Color.White).padding(6.dp), filterQuality = androidx.compose.ui.graphics.FilterQuality.None)
+                        Text("Tap to enlarge", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
         }
@@ -118,6 +150,12 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                             color = if (p.ready) colors.onSuccessContainer else Color(0xFFC9D0DB).takeIf { isDark() } ?: colors.onDisabledContainer,
                             modifier = Modifier.background(if (p.ready) colors.successContainer else colors.disabledContainer, RoundedCornerShape(999.dp)).padding(horizontal = 12.dp, vertical = 6.dp),
                         )
+                        if (isAdmin && p.id != me) {
+                            Box(
+                                Modifier.size(36.dp).clip(CircleShape).background(colors.dangerContainer).clickable { kickId = p.id },
+                                contentAlignment = Alignment.Center,
+                            ) { com.bumbaiya.lanplay.ui.components.DIcon(DI.Close, tint = colors.onDangerContainer, size = 18.dp) }
+                        }
                     }
                 }
             }

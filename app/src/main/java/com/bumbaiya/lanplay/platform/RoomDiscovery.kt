@@ -23,15 +23,17 @@ class RoomDiscovery(context: Context) {
     private var multicastLock: WifiManager.MulticastLock? = null
     private var registration: NsdManager.RegistrationListener? = null
     private var discovery: NsdManager.DiscoveryListener? = null
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
     private val _rooms = MutableStateFlow<Map<String, JoinLink>>(emptyMap())
     /** Rooms found so far, by room ID. */
     val rooms: StateFlow<Map<String, JoinLink>> = _rooms
 
     /** Host side: announce the room until [stopAdvertising]. */
-    fun advertise(roomId: String, port: Int) {
+    fun advertise(roomId: String, port: Int, ip: String? = null) {
         stopAdvertising()
-        val info = NsdServiceInfo().apply { serviceName = SERVICE_PREFIX + roomId; serviceType = SERVICE_TYPE; setPort(port) }
+        // The IPv4 address goes in the announcement so joiners never have to guess between IPv4/IPv6.
+        val info = NsdServiceInfo().apply { serviceName = SERVICE_PREFIX + roomId; serviceType = SERVICE_TYPE; setPort(port); ip?.let { setAttribute("ip", it) } }
         val l = object : NsdManager.RegistrationListener {
             override fun onServiceRegistered(i: NsdServiceInfo) {}
             override fun onRegistrationFailed(i: NsdServiceInfo, code: Int) {}
@@ -84,9 +86,14 @@ class RoomDiscovery(context: Context) {
     private fun resolve(info: NsdServiceInfo) {
         runCatching {
             nsd.resolveService(info, object : NsdManager.ResolveListener {
-                override fun onResolveFailed(i: NsdServiceInfo, code: Int) {}
+                override fun onResolveFailed(i: NsdServiceInfo, code: Int) {
+                    // Android resolves one service at a time; try again shortly if it was busy.
+                    if (code == NsdManager.FAILURE_ALREADY_ACTIVE && discovery != null) handler.postDelayed({ resolve(info) }, 400)
+                }
                 override fun onServiceResolved(i: NsdServiceInfo) {
-                    val host = i.host?.hostAddress ?: return
+                    val announced = i.attributes["ip"]?.let { String(it) }
+                    val v4 = (i.host as? java.net.Inet4Address)?.hostAddress
+                    val host = announced ?: v4 ?: i.host?.hostAddress?.substringBefore('%') ?: return
                     val id = i.serviceName.removePrefix(SERVICE_PREFIX)
                     _rooms.value = _rooms.value + (id to JoinLink(id, host, i.port))
                 }
