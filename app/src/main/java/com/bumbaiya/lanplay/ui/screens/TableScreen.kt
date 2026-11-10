@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -224,6 +225,7 @@ private fun DrawingTargetControls(client: GameClient, state: GameState, phase: P
 
 @Composable
 private fun Opponents(state: GameState, phase: Phase.Turns, now: Long, myId: String, iAmOut: Boolean, onCatch: (String) -> Unit) {
+    var expandedId by remember { mutableStateOf<String?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         state.players.filter { it.id != myId }.forEach { p ->
             val rp = state.hands[p.id]
@@ -237,10 +239,18 @@ private fun Opponents(state: GameState, phase: Phase.Turns, now: Long, myId: Str
                 ) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(p.name, fontSize = 14.sp, fontWeight = FontWeight.Medium, modifier = Modifier.width(46.dp), maxLines = 1, color = if (out || !p.connected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
-                        Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            val cards = rp?.hand.orEmpty()
-                            cards.take(5).forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, size = DeckCardSize.Small, dimmed = out) }
-                            if (cards.size > 5) Text("+${cards.size - 5}", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        val cards = rp?.hand.orEmpty()
+                        val open = expandedId == p.id
+                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                        androidx.compose.foundation.layout.FlowRow(
+                            Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp),
+                            itemVerticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            (if (open) cards else cards.take(5)).forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, size = DeckCardSize.Small, dimmed = out) }
+                            if (cards.size > 5) Text(
+                                if (open) "Show less" else "+${cards.size - 5} more", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.lanPlayColors.accentText,
+                                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { expandedId = if (open) null else p.id }.padding(horizontal = 6.dp, vertical = 8.dp),
+                            )
                         }
                         when {
                             window != null && !iAmOut -> Surface(

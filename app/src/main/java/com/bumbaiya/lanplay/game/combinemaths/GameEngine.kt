@@ -74,7 +74,7 @@ class GameEngine(private val random: Random = Random.Default) {
             Intent.StopTarget -> drawTarget(live, playerId, now, stop = true)
             is Intent.DrawCard -> turnOnly(live, playerId) { turns ->
                 if (turns.hasDrawn) return@turnOnly Outcome.Rejected("You already drew this turn")
-                val (card, withId) = newCard(live, intent.number)
+                val (card, withId) = drawFor(live, playerId, intent.number)
                 val hand = withId.hands.getValue(playerId)
                 ok(withId.copy(
                     hands = withId.hands + (playerId to hand.copy(hand = hand.hand + card)),
@@ -228,6 +228,30 @@ class GameEngine(private val random: Random = Random.Default) {
 
     private fun activeIds(s: GameState) = s.hands.filterValues { !it.out }.keys.filter { id -> s.player(id)?.connected == true }
 
+    /**
+     * A draw during a round. Pure luck can leave a round with no way to reach the target, so the
+     * draw leans toward cards that help: the longer a player's hand has been stuck, the more
+     * likely the card they get is one that gets them closer to (or all the way to) the target.
+     */
+    private fun drawFor(s: GameState, playerId: String, number: Boolean): Pair<GameCard, GameState> {
+        val target = s.targetValue
+        val rp = s.hands[playerId]
+        if (target == null || rp == null) return newCard(s, number)
+        val help = (ASSIST_BASE + ASSIST_PER_CARD * (rp.hand.size - 2)).coerceIn(ASSIST_BASE, ASSIST_MAX)
+        if (random.nextDouble() >= help) return newCard(s, number)
+        val id = s.nextCardId
+        val options: List<GameCard> = if (number) (0..9).map { GameCard(id, digit = it) } else OPERATOR_POOL.map { GameCard(id, op = it) }
+        val digits = rp.hand.mapNotNull { it.digit }
+        val ops = rp.hand.mapNotNull { it.op }
+        val scored = options.map { c ->
+            val h = Hand(digits + listOfNotNull(c.digit), ops + listOfNotNull(c.op))
+            c to Solver.distance(h, target, timeLimitMs = 12)
+        }
+        val bestDistance = scored.minOf { it.second }
+        val best = scored.filter { it.second == bestDistance }.map { it.first }
+        return best[random.nextInt(0, best.size)] to s.copy(nextCardId = id + 1)
+    }
+
     private fun newCard(s: GameState, number: Boolean): Pair<GameCard, GameState> {
         val id = s.nextCardId
         val card = if (number) GameCard(id, digit = random.nextInt(0, 10)) else GameCard(id, op = OPERATOR_POOL.random(random))
@@ -258,6 +282,9 @@ class GameEngine(private val random: Random = Random.Default) {
         const val MAX_PLAYERS = 6
         const val MAX_TARGET_CARDS = 3
         const val MAX_PREVIEW_SLOTS = 30
+        private const val ASSIST_BASE = 0.4
+        private const val ASSIST_PER_CARD = 0.15
+        private const val ASSIST_MAX = 0.95
         private val OPERATOR_POOL = listOf(Op.Plus, Op.Minus, Op.Pi, Op.Sigma, Op.Sqrt, Op.Wild)
     }
 }

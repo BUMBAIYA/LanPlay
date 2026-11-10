@@ -198,9 +198,21 @@ fun ExpressionBuilder(
                     "$used cards used, ${owned.size - used} unused. Using every card is optional.",
                     fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (liveResult && state.slots.isNotEmpty()) {
-                    val r = ExpressionEvaluator.evaluate(state.expression(), engineHand())
-                    if (r is EvalResult.Value) Text("= ${r.value}", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.lanPlayColors.accentText)
+                if (liveResult) {
+                    // The admin turned on the live result: always show a clear box so players can see it is on.
+                    val r = if (state.slots.isEmpty()) null else ExpressionEvaluator.evaluate(state.expression(), engineHand())
+                    val value = (r as? EvalResult.Value)?.value?.toString()
+                    Row(
+                        Modifier.fillMaxWidth().background(MaterialTheme.lanPlayColors.successContainer, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text("Result", fontSize = 13.sp, color = MaterialTheme.lanPlayColors.onSuccessContainer)
+                        Text(
+                            when { value != null -> "= $value"; state.slots.isEmpty() -> "Build a row to see its result"; else -> "= ?  (not complete yet)" },
+                            fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = if (value != null) 22.sp else 14.sp,
+                            color = MaterialTheme.lanPlayColors.onSuccessContainer,
+                        )
+                    }
                 }
                 message?.let { Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface) }
                 if (style == BuilderStyle.Catch && proofHint.isNotEmpty()) Text(proofHint, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
