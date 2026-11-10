@@ -46,8 +46,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -95,7 +93,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     val now by produceState((client.serverNow() / 1000) * 1000) { while (true) { value = (client.serverNow() / 1000) * 1000; delay(200) } }
     var confirmLeave by remember { mutableStateOf(false) }
     var catching by remember { mutableStateOf<String?>(null) }
-    val haptic = LocalHapticFeedback.current
+    val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
     val isAdmin = myId == state.adminId
     val iAmOut = state.hands[myId]?.out == true
     val sound by Session.settings.sound.collectAsState()
@@ -103,7 +101,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     // Beep and buzz when the turn becomes mine.
     val currentId = (phase as? Phase.Turns)?.currentId
     LaunchedEffect(currentId) {
-        if (currentId == myId) { Feedback.turn(); if (Session.settings.haptics.value) haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+        if (currentId == myId) { Feedback.turn(); Feedback.buzz(appContext) }
     }
     LaunchedEffect(phase is Phase.Turns) { if (phase !is Phase.Turns) catching = null }
     // Scores at the start of the round, so the result screen can show "+3".
