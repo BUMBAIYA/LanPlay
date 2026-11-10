@@ -1,0 +1,168 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Monopoly – Indian Edition (LanPlay) – App Design</title>
+<style>
+@page{size:1600px 900px;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0E1116;--sf:#171C24;--sf2:#1F2630;--bd:#2C3440;--tx:#EAEFF6;--mut:#9AA3B2;--lime:#B6F24A;--red:#F26B5B;--blue:#5BA3E6}
+body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;background:#05070A;color:var(--tx)}
+.page{width:1600px;height:900px;page-break-after:always;position:relative;overflow:hidden;background:radial-gradient(900px 500px at 80% -10%,#1b2a14 0,transparent 60%),var(--bg);padding:48px 64px}
+h1{font-size:44px;letter-spacing:-1px}h2{font-size:30px;margin-bottom:6px}
+.sub{color:var(--mut);font-size:18px;margin-bottom:22px}
+.tag{display:inline-block;background:var(--lime);color:#0E1116;font-weight:800;font-size:13px;padding:4px 10px;border-radius:99px;letter-spacing:1px}
+.row{display:flex;gap:28px}.note{font-size:15px;color:var(--mut);line-height:1.55}
+.note b{color:var(--tx)}
+/* phone */
+.phone{width:1180px;height:545px;border-radius:44px;border:10px solid #232a35;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 30px 80px #000a}
+.bar{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:15px;color:var(--mut)}
+/* cards */
+.card{width:132px;height:190px;border-radius:14px;position:relative;overflow:hidden;flex:none;color:#111;box-shadow:0 6px 16px #0009,inset 0 0 0 2px #ffffff22;font-size:11px}
+.card.big{transform:scale(1.55);transform-origin:top left;margin-right:70px;margin-bottom:100px}
+.prop{background:#f4efe3;border:3px solid #15110a}
+.prop .band{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;color:#fff;font-weight:800;font-size:12px;position:relative}
+.prop .band:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:8px;background:radial-gradient(circle at 6px 8px,transparent 5px,#f4efe3 5.5px) 0 0/12px 8px}
+.prop .art{height:56px;margin:8px 10px 0;border-radius:40px 40px 6px 6px;display:flex;align-items:flex-end;justify-content:center;font-size:30px;background:linear-gradient(#fff6 0,#0002 100%)}
+.prop .nm{text-align:center;font-weight:800;font-size:12.5px;margin-top:5px;line-height:1.05;padding:0 4px}
+.prop .ct{text-align:center;font-size:9px;color:#6a604c;letter-spacing:.5px}
+.ladder{margin:4px 10px 0;font-size:9.5px;border-top:1px solid #0002;padding-top:3px}
+.ladder div{display:flex;justify-content:space-between;line-height:1.35}
+.pips{position:absolute;bottom:5px;left:0;right:0;display:flex;justify-content:center;gap:3px}
+.pips i{width:9px;height:9px;border-radius:50%;border:2px solid #15110a;background:#fff}
+.pips i.f{background:#15110a}
+.val{position:absolute;top:5px;right:6px;background:#fff;color:#111;border-radius:50%;width:23px;height:23px;font-weight:900;font-size:10px;display:flex;align-items:center;justify-content:center;border:2px solid #15110a}
+.money{border:3px solid #0d3a1c;color:#0d3a1c}
+.money .in{position:absolute;inset:7px;border:2px solid #0d3a1c55;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.money .amt{font-size:38px;font-weight:900;letter-spacing:-1px}.money .u{font-size:11px;font-weight:700;letter-spacing:2px}
+.money .wm{position:absolute;font-size:96px;opacity:.12;top:48px}
+.wild{background:#f4efe3;border:3px solid #15110a}
+.act{border:3px solid #111;color:#fff}
+.act .ic{font-size:50px;text-align:center;margin-top:26px}
+.act .t{text-align:center;font-weight:900;font-size:14px;letter-spacing:.5px;margin-top:2px}
+.act .d{margin:8px 10px;font-size:10px;text-align:center;line-height:1.3;opacity:.92}
+.act .val{background:#fff}
+.rent{border:3px solid #111;background:#1b1530;color:#fff}
+.back{background:repeating-linear-gradient(45deg,#101820 0 10px,#131d27 10px 20px);border:3px solid var(--lime);display:flex;align-items:center;justify-content:center}
+.back b{width:70px;height:70px;border-radius:50%;border:3px solid var(--lime);color:var(--lime);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900}
+.hand{position:absolute;bottom:-38px;left:50%;display:flex;transform:translateX(-50%)}
+.hand .card{margin-left:-34px;transform-origin:bottom center}
+.mini{width:62px;height:88px;border-radius:7px;font-size:7px;border-width:2px}
+.mini .band{height:20px;font-size:6px}.mini .art,.mini .ladder,.mini .ct,.mini .nm,.mini .pips{display:none}
+.chip{background:var(--sf2);border:1px solid var(--bd);border-radius:99px;padding:6px 14px;font-size:14px;display:inline-flex;gap:8px;align-items:center}
+.lime{background:var(--lime);color:#0E1116;font-weight:800;border-radius:14px;padding:12px 22px;font-size:16px;display:inline-block}
+.ghost{border:1.5px solid var(--bd);border-radius:14px;padding:12px 22px;font-size:16px;display:inline-block}
+.panel{background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:16px}
+.av{width:44px;height:44px;border-radius:50%;background:var(--lime);color:#0E1116;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}
+.seat{position:absolute;display:flex;flex-direction:column;gap:8px}
+.sets{display:flex;gap:6px}
+.dlg{position:absolute;background:var(--sf);border:1px solid var(--bd);border-radius:26px;padding:22px;box-shadow:0 20px 60px #000c}
+table{border-collapse:collapse;font-size:15px;width:100%}td,th{border-bottom:1px solid var(--bd);padding:7px 10px;text-align:left}th{color:var(--mut);font-weight:600}
+.grid{display:flex;flex-wrap:wrap;gap:18px}
+</style></head><body>
+<script>
+const SETS=[
+ {k:'Brown',c:'#8b5a3c',n:2,b:1,r:[1,2],p:[['Dharavi Bazaar','🏘️'],['Chandni Chowk','🕌']]},
+ {k:'Light Blue',c:'#6fc7ee',n:3,b:1,r:[1,2,3],p:[['Connaught Place','🏛️'],['Park Street','🎷'],['MG Road','🌆']]},
+ {k:'Pink',c:'#e86fa8',n:3,b:2,r:[1,2,4],p:[['Hazratganj','🕌'],['Charminar Road','🕌'],['Law Garden','🌳']]},
+ {k:'Orange',c:'#f59a2b',n:3,b:2,r:[1,3,5],p:[['Colaba Causeway','🏙️'],['Hauz Khas Village','🏰'],['Brigade Road','🛍️']]},
+ {k:'Red',c:'#d9382f',n:3,b:3,r:[2,3,6],p:[['Marine Drive','🌊'],['Banjara Hills','🏡'],['Bandra West','🎬']]},
+ {k:'Yellow',c:'#e8c52b',n:3,b:3,r:[2,4,6],p:[['Jubilee Hills','🏘️'],['Koregaon Park','🧘'],['Alipore','🌴']]},
+ {k:'Green',c:'#2a9a55',n:3,b:4,r:[2,4,7],p:[['Lutyens\' Delhi','🏛️'],['Malabar Hill','⛰️'],['Boat Club Road','⛵']]},
+ {k:'Dark Blue',c:'#2b46b8',n:2,b:4,r:[3,8],p:[['Altamount Road','🏙️'],['Cuffe Parade','🌇']]},
+ {k:'Railways',c:'#2d323c',n:4,b:2,r:[1,2,3,4],p:[['Rajdhani Express','🚆'],['Vande Bharat','🚄'],['Deccan Queen','🚂'],['Palace on Wheels','👑']]},
+ {k:'Utilities',c:'#9aa3b2',n:2,b:2,r:[1,2],p:[['Tata Power','⚡'],['Jal Board','💧']]}];
+const ord=['1st','2nd','3rd','4th'];
+function prop(s,i,mini){const [nm,ic]=s.p[i];
+ const lad=s.r.map((v,j)=>`<div><span>${j+1} card${j?'s':''}${j==s.n-1?' ✦ SET':''}</span><b>₹${v}L</b></div>`).join('');
+ return `<div class="card prop ${mini?'mini':''}"><div class="band" style="background:${s.c};${s.k=='Utilities'||s.k=='Yellow'||s.k=='Light Blue'?'color:#111':''}"><span>${s.k.toUpperCase()}</span></div><div class="val">₹${s.b}L</div>
+ <div class="art" style="background:linear-gradient(${s.c}55,${s.c}11)">${ic}</div><div class="nm">${nm}</div><div class="ct">${s.n} CARDS = SET</div><div class="ladder">${lad}</div></div>`}
+function wild(a,b,ic,big){return `<div class="card wild"><div style="height:100%;background:linear-gradient(135deg,${a} 0 50%,${b} 50% 100%);opacity:.9;position:absolute;inset:0"></div><div style="position:absolute;inset:10px;border-radius:50%/40%;background:#f4efe3;display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px solid #15110a"><div style="font-size:40px">${ic}</div><div style="font-weight:900;font-size:11px;text-align:center;line-height:1.1;margin-top:4px">PROPERTY<br>WILD</div></div></div>`}
+function money(v){return `<div class="card money" style="background:linear-gradient(135deg,#d8efd9,#a9d8b3)"><div class="wm">☸</div><div class="in"><div class="u">RESERVE BANK OF PLAY</div><div class="amt">₹${v}L</div><div class="u">LAKH</div></div></div>`}
+function act(t,ic,d,a,b,v){return `<div class="card act" style="background:linear-gradient(160deg,${a},${b})"><div class="val">₹${v}L</div><div class="ic">${ic}</div><div class="t">${t}</div><div class="d">${d}</div></div>`}
+function rentc(t,a,b){return `<div class="card rent"><div style="position:absolute;inset:0;background:linear-gradient(90deg,${a} 0 50%,${b} 50%);opacity:.35"></div><div style="position:absolute;top:30px;left:0;right:0;text-align:center;font-size:44px">🪷</div><div style="position:absolute;top:92px;left:0;right:0;text-align:center;font-weight:900;font-size:16px">RENT</div><div style="position:absolute;top:114px;left:8px;right:8px;text-align:center;font-size:10px;opacity:.9">${t}</div><div class="val">₹1L</div></div>`}
+</script>
+
+<!-- 1 COVER -->
+<div class="page" style="display:flex;align-items:center;gap:60px">
+ <div style="width:640px"><span class="tag">NEW GAME · LANPLAY</span><h1 style="font-size:84px;margin:18px 0 8px;line-height:.95">Monopoly<br><span style="color:var(--lime)">India Edition</span></h1>
+ <p class="sub" style="font-size:22px;max-width:560px">A fast card-deal game for 2–4 friends on one hotspot. Collect property sets from Mumbai to Kolkata, charge rent in lakhs, steal, swap and say no.</p>
+ <div class="row" style="gap:12px;flex-wrap:wrap"><span class="chip">👥 2–4 players</span><span class="chip">📶 LAN / hotspot</span><span class="chip">₹ INR · lakh</span><span class="chip">🃏 110 cards</span><span class="chip">🏆 First to 3 sets</span></div>
+ <p class="note" style="margin-top:26px">This document shows how the game will look inside the LanPlay app: lobby, table, every card type, and key dialogs. Rules follow Monopoly Deal; values are in ₹ lakh (L).</p></div>
+ <div style="position:relative;width:700px;height:640px">
+  <div style="position:absolute;left:0;top:60px;transform:rotate(-14deg)">${''}</div>
+  <script>document.write(`<div style="position:absolute;left:30px;top:70px;transform:rotate(-16deg) scale(1.9);transform-origin:top left">${prop(SETS[6],0)}</div><div style="position:absolute;left:230px;top:30px;transform:rotate(-3deg) scale(1.9);transform-origin:top left">${prop(SETS[4],0)}</div><div style="position:absolute;left:430px;top:80px;transform:rotate(11deg) scale(1.9);transform-origin:top left">${prop(SETS[7],0)}</div>`)</script>
+ </div>
+</div>
+
+<!-- 2 LOBBY -->
+<div class="page"><span class="tag">SCREEN 1</span><h2 style="margin-top:8px">Lobby · max 4 players</h2><p class="sub">Same lobby as Dhappa: room ID, QR, ready toggles, admin settings. Start unlocks at 2+ ready players.</p>
+<div class="phone"><div class="bar"><span>Monopoly · India Edition</span><span>Room <b style="color:var(--lime)">K7QX</b></span></div>
+<div style="position:absolute;top:60px;left:32px;width:520px" class="panel"><div style="font-size:14px;color:var(--mut);margin-bottom:10px">PLAYERS 3 / 4</div>
+ <div style="display:flex;flex-direction:column;gap:10px">
+ <div class="chip" style="border-radius:16px;justify-content:space-between;width:100%"><span style="display:flex;gap:10px;align-items:center"><div class="av">A</div>Amit <small style="color:var(--lime)">ADMIN</small></span><span style="color:var(--lime)">● READY</span></div>
+ <div class="chip" style="border-radius:16px;justify-content:space-between;width:100%"><span style="display:flex;gap:10px;align-items:center"><div class="av" style="background:var(--blue)">R</div>Riya</span><span style="color:var(--lime)">● READY</span></div>
+ <div class="chip" style="border-radius:16px;justify-content:space-between;width:100%"><span style="display:flex;gap:10px;align-items:center"><div class="av" style="background:var(--red)">K</div>Karan</span><span style="color:var(--mut)">○ NOT READY</span></div>
+ <div class="chip" style="border-radius:16px;border-style:dashed;width:100%;color:var(--mut)">Waiting for player 4…</div></div></div>
+<div style="position:absolute;top:60px;left:580px;width:540px" class="panel"><div style="font-size:14px;color:var(--mut);margin-bottom:10px">GAME SETTINGS (admin)</div>
+ <table><tr><td>Sets to win</td><td><b>3</b></td></tr><tr><td>Turn timer</td><td><b>45 s</b></td></tr><tr><td>Starting cards</td><td><b>5</b></td></tr><tr><td>Hand limit</td><td><b>7</b></td></tr><tr><td>Just Say No window</td><td><b>8 s</b></td></tr></table>
+ <div style="margin-top:14px;display:flex;gap:12px"><span class="lime" style="flex:1;text-align:center">Start game</span><span class="ghost">Invite · QR</span></div></div></div></div>
+
+<!-- 3 TABLE -->
+<div class="page"><span class="tag">SCREEN 2</span><h2 style="margin-top:8px">The table (4 players)</h2><p class="sub">Your hand fans along the bottom. Opponents sit top, left, right: each shows bank total, property sets and card count. Tap an opponent's set to target actions.</p>
+<div class="phone"><div class="bar"><span>Round · Your turn <b style="color:var(--lime)">0:32</b></span><span>Plays left <b style="color:var(--lime)">● ● ○</b></span></div>
+ <!-- top opponent -->
+ <div class="seat" style="top:46px;left:360px;align-items:center"><div class="chip"><div class="av" style="width:30px;height:30px;font-size:13px;background:var(--blue)">R</div>Riya · bank ₹9L · 🂠 5</div><div class="sets"><script>document.write(prop(SETS[1],0,1)+prop(SETS[1],1,1)+prop(SETS[1],2,1)+prop(SETS[8],0,1)+prop(SETS[8],1,1))</script></div></div>
+ <!-- left -->
+ <div class="seat" style="top:120px;left:24px"><div class="chip"><div class="av" style="width:30px;height:30px;font-size:13px;background:var(--red)">K</div>Karan · ₹12L</div><div class="sets"><script>document.write(prop(SETS[4],0,1)+prop(SETS[4],1,1))</script></div></div>
+ <!-- right -->
+ <div class="seat" style="top:120px;right:24px;align-items:flex-end"><div class="chip"><div class="av" style="width:30px;height:30px;font-size:13px;background:#c89bff">S</div>Sana · ₹4L</div><div class="sets"><script>document.write(prop(SETS[7],0,1)+prop(SETS[7],1,1))</script></div></div>
+ <!-- center piles -->
+ <div style="position:absolute;top:180px;left:490px;display:flex;gap:18px"><div class="card back mini" style="width:78px;height:110px"><b style="width:34px;height:34px;font-size:14px">L</b></div><div class="card mini" style="width:78px;height:110px;background:#222;border:2px dashed var(--bd);color:var(--mut);display:flex;align-items:center;justify-content:center;text-align:center;font-size:9px">DISCARD</div></div>
+ <!-- your bank -->
+ <div style="position:absolute;top:305px;left:60px" class="chip">🏦 Your bank ₹7L</div>
+ <div style="position:absolute;top:300px;right:60px" class="chip">Sets <b style="color:var(--lime)">1 / 3</b></div>
+ <div class="hand"><script>document.write(prop(SETS[6],0)+act('SLY DEAL','🕵️','Steal 1 property not in a full set','#7c2d92','#3d1650',3)+money(4)+rentc('Red / Yellow','#d9382f','#e8c52b')+wild('#2b46b8','#2a9a55','🌈')+act('PASS GO','🚉','Draw 2 extra cards','#13808b','#0b3b40',1)+prop(SETS[4],2))</script></div>
+</div></div>
+
+<!-- 4 PROPERTY CARDS -->
+<div class="page"><span class="tag">CARDS · 28 PROPERTIES</span><h2 style="margin-top:8px">Property cards – real Indian addresses</h2><p class="sub">Colour band with scalloped jharokha edge, illustrated landmark arch, bank value badge, rent ladder, and a full-set marker. 10 colours · set sizes 2/3/3/3/3/3/3/2/4/2.</p>
+<div class="grid" id="pg"></div><script>
+const pg=document.getElementById('pg');SETS.forEach(s=>{pg.insertAdjacentHTML('beforeend',`<div style="width:132px"><div style="transform:scale(1);margin-bottom:4px">${prop(s,0)}</div><div style="font-size:12px;color:var(--mut);margin-top:6px">${s.k} · ${s.n}</div></div>`)});</script>
+<div class="panel" style="margin-top:12px;font-size:13px;color:var(--mut)">Full list: <b style="color:var(--tx)">Brown</b> Dharavi Bazaar, Chandni Chowk · <b style="color:var(--tx)">Light Blue</b> Connaught Place, Park Street, MG Road · <b style="color:var(--tx)">Pink</b> Hazratganj, Charminar Road, Law Garden · <b style="color:var(--tx)">Orange</b> Colaba Causeway, Hauz Khas Village, Brigade Road · <b style="color:var(--tx)">Red</b> Marine Drive, Banjara Hills, Bandra West · <b style="color:var(--tx)">Yellow</b> Jubilee Hills, Koregaon Park, Alipore · <b style="color:var(--tx)">Green</b> Lutyens' Delhi, Malabar Hill, Boat Club Road · <b style="color:var(--tx)">Dark Blue</b> Altamount Road, Cuffe Parade · <b style="color:var(--tx)">Railways</b> Rajdhani, Vande Bharat, Deccan Queen, Palace on Wheels · <b style="color:var(--tx)">Utilities</b> Tata Power, Jal Board</div></div>
+
+<!-- 5 RENT LADDERS -->
+<div class="page"><span class="tag">VALUES</span><h2 style="margin-top:8px">Rent &amp; bank values (₹ lakh)</h2><p class="sub">Rent grows with each card in the set. A house adds ₹3L, a hotel ₹4L on top (not on Railways/Utilities). Values mirror the original game's dollar figures.</p>
+<table style="max-width:1100px"><tr><th>Set</th><th>Cards</th><th>Bank</th><th>Rent ladder</th><th>+ House / Hotel</th></tr><script>
+SETS.forEach(s=>document.write(`<tr><td><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:${s.c};margin-right:8px"></span>${s.k}</td><td>${s.n}</td><td>₹${s.b}L</td><td>${s.r.map(v=>'₹'+v+'L').join(' → ')}</td><td>${s.k=='Railways'||s.k=='Utilities'?'—':'+3L / +4L'}</td></tr>`))</script></table></div>
+
+<!-- 6 MONEY/WILD/RENT -->
+<div class="page"><span class="tag">CARDS · MONEY · WILD · RENT</span><h2 style="margin-top:8px">Money, wild &amp; rent cards</h2><p class="sub">Banknote style with guilloche border and Ashoka-chakra watermark. Wilds use a rangoli ring over a split-colour face. Rent cards carry a lotus mandala.</p>
+<p class="note"><b>Money · 20 cards ₹57L total</b> – ₹1L×6, ₹2L×5, ₹3L×3, ₹4L×3, ₹5L×2, ₹10L×1</p><div class="grid" style="margin:10px 0 22px"><script>[1,2,3,4,5,10].forEach(v=>document.write(money(v)))</script></div>
+<p class="note"><b>Wild properties · 11</b> – Dark Blue/Green, Green/Railways, Utilities/Railways, Light Blue/Railways, Light Blue/Brown, Pink/Orange ×2, Red/Yellow ×2, Multicolour ×2 (₹0, cannot pay)</p><div class="grid" style="margin:10px 0 22px"><script>document.write(wild('#2b46b8','#2a9a55','🏙️')+wild('#2a9a55','#2d323c','🚉')+wild('#9aa3b2','#2d323c','⚡')+wild('#6fc7ee','#2d323c','🚆')+wild('#6fc7ee','#8b5a3c','🏘️')+wild('#e86fa8','#f59a2b','🏯')+wild('#d9382f','#e8c52b','🌅')+wild('#d9382f','#2b46b8','🌈'))</script></div>
+<p class="note"><b>Rent · 13</b> – Two-colour ×10 (charge all players) and Wild ×3 (charge one player)</p><div class="grid" style="margin-top:10px"><script>document.write(rentc('Dark Blue / Green','#2b46b8','#2a9a55')+rentc('Red / Yellow','#d9382f','#e8c52b')+rentc('Pink / Orange','#e86fa8','#f59a2b')+rentc('Light Blue / Brown','#6fc7ee','#8b5a3c')+rentc('Railways / Utilities','#2d323c','#9aa3b2')+rentc('ALL COLOURS · one player','#d9382f','#2b46b8'))</script></div></div>
+
+<!-- 7 ACTION -->
+<div class="page"><span class="tag">CARDS · 34 ACTIONS</span><h2 style="margin-top:8px">Action cards</h2><p class="sub">Bold gradient faces, large emoji-style icon, one-line effect. Any action can be banked as money instead.</p>
+<div class="grid"><script>document.write(
+act('DEAL BREAKER ×2','🔨','Steal a complete set (with house/hotel)','#b3261e','#4d0f0b',5)+
+act('JUST SAY NO ×3','✋','Cancel an action played against you (free play)','#1f6f3a','#0b2c16',4)+
+act('SLY DEAL ×3','🕵️','Steal 1 property not in a full set','#7c2d92','#3d1650',3)+
+act('FORCE DEAL ×3','🔁','Swap a property with another player','#b45309','#4a2204',3)+
+act('DEBT COLLECTOR ×3','📜','One player pays you ₹5L','#1d4ed8','#0b1f5c',3)+
+act('IT\'S MY BIRTHDAY ×3','🎂','Every player pays you ₹2L','#be185d','#500724',2)+
+act('PASS GO ×10','🚉','Draw 2 extra cards','#13808b','#0b3b40',1)+
+act('HOUSE ×3','🏠','Add to a full set: rent +₹3L','#4d7c0f','#1a2e05',3)+
+act('HOTEL ×2','🏨','Add to a set with a house: rent +₹4L','#a16207','#3b2403',4)+
+act('DOUBLE THE RENT ×2','✖️2','Double the rent you just charged','#475569','#0f172a',1))</script></div>
+<p class="note" style="margin-top:14px">Sizes in-app: hand cards 132×190 dp, opponent mini cards 62×88 dp. Long-press any card to enlarge (same as the QR enlarge pattern).</p></div>
+
+<!-- 8 DIALOGS -->
+<div class="page"><span class="tag">SCREEN 3</span><h2 style="margin-top:8px">Play moments</h2><p class="sub">Targeting, payment and Just Say No use the same themed dialogs and icons as the rest of LanPlay.</p>
+<div class="phone" style="height:560px"><div class="bar"><span>Riya played <b style="color:var(--lime)">Sly Deal</b> on you</span><span>JSN window <b style="color:var(--red)">0:06</b></span></div>
+<div class="dlg" style="top:70px;left:50px;width:520px"><div style="font-size:22px;font-weight:800">Riya wants your Hazratganj</div><p class="note" style="margin:8px 0 14px">Sly Deal · steals one property that isn't in a complete set.</p><div class="row" style="gap:12px"><script>document.write(prop(SETS[2],0)+act('JUST SAY NO','✋','Cancel this action','#1f6f3a','#0b2c16',4))</script></div><div style="display:flex;gap:12px;margin-top:70px"><span class="lime" style="background:var(--red);color:#0E1116">✋ Just Say No</span><span class="ghost">✓ Allow</span></div></div>
+<div class="dlg" style="top:70px;left:620px;width:500px"><div style="font-size:22px;font-weight:800">Pay Karan ₹5L</div><p class="note" style="margin:8px 0 14px">Debt Collector. Pick cards from your bank and properties. No change given.</p>
+<div class="sets" style="margin-bottom:12px"><script>document.write(money(2)+money(3)+prop(SETS[0],0))</script></div><div class="chip" style="margin-bottom:12px">Selected <b style="color:var(--lime)">₹5L</b> / ₹5L ✓</div><br><span class="lime">Pay now</span></div></div></div>
+
+<!-- 9 WIN + NOTES -->
+<div class="page"><span class="tag">SCREEN 4 · RULES AT A GLANCE</span><h2 style="margin-top:8px">Win screen &amp; turn rules</h2>
+<div class="row"><div class="panel" style="width:560px"><div style="font-size:30px;font-weight:900;color:var(--lime)">🏆 Riya wins!</div><p class="note" style="margin:8px 0 14px">3 complete sets: Light Blue · Railways · Pink</p><div class="sets"><script>document.write(prop(SETS[1],0,1)+prop(SETS[1],1,1)+prop(SETS[1],2,1)+prop(SETS[8],0,1)+prop(SETS[8],1,1)+prop(SETS[8],2,1)+prop(SETS[8],3,1))</script></div><div style="margin-top:20px;display:flex;gap:12px"><span class="lime">Play again</span><span class="ghost">Back to lobby</span></div></div>
+<div class="panel" style="flex:1"><div style="font-size:20px;font-weight:800;margin-bottom:10px">Turn rules</div><div class="note" style="font-size:17px;line-height:1.8">① Draw 2 cards (5 if hand was empty)<br>② Play up to 3 cards: bank, property, or action<br>③ End turn; discard down to 7<br>④ Payments: only table cards, no change, can't pay with hand cards<br>⑤ Complete sets are protected from Sly/Force Deal; only Deal Breaker takes them<br>⑥ Just Say No can be countered by another Just Say No, endlessly<br>⑦ First to 3 complete sets wins · empty draw pile reshuffles discards<br>⑧ Turn timer expiry auto-ends the turn (hand limit enforced)</div></div></div></div>
+</body></html>
