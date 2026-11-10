@@ -60,6 +60,7 @@ class GameClient(private val scope: CoroutineScope) {
         job = scope.launch {
             var token: String? = null
             var failures = 0
+            var lastError = ""
             while (isActive && !closed) {
                 try {
                     http.webSocket(host = host, port = port, path = "/ws") {
@@ -87,9 +88,9 @@ class GameClient(private val scope: CoroutineScope) {
                         } finally { sender.cancel() }
                     }
                 } catch (e: CancellationException) { throw e
-                } catch (e: Exception) { failures++ }
+                } catch (e: Exception) { failures++; lastError = (e.message ?: e::class.simpleName ?: "").take(140) }
                 if (closed) break
-                if (_myId.value == null && failures >= 3) { _status.value = ConnectionStatus.Failed("Could not reach the host"); break }
+                if (_myId.value == null && failures >= 3) { _status.value = ConnectionStatus.Failed("Could not reach the host" + if (lastError.isNotBlank()) " ($lastError)" else ""); break }
                 if (failures > maxRetries) { _status.value = ConnectionStatus.Failed("Lost connection to the host"); break }
                 _status.value = if (_myId.value == null) ConnectionStatus.Connecting else ConnectionStatus.Reconnecting
                 delay(1500)
