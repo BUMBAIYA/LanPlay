@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+base.archivesName.set("LanPlay")
+
 android {
     namespace = "com.bumbaiya.lanplay"
     compileSdk {
