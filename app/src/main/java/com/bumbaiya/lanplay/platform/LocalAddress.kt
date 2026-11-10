@@ -19,3 +19,25 @@ object LocalAddress {
             ?: candidates.firstOrNull()?.second
     }
 }
+
+/**
+ * Wi-Fi without internet (a home router with no data, a phone hotspot) often makes Android send
+ * traffic over mobile data instead, so connecting to 192.168.x.x silently fails. While we are in a
+ * room we pin this app's traffic to the Wi-Fi network so local addresses are reachable.
+ */
+object WifiBinding {
+    @Suppress("DEPRECATION")
+    fun bind(context: android.content.Context) {
+        runCatching {
+            val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+            val wifi = cm.allNetworks.firstOrNull { cm.getNetworkCapabilities(it)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) == true }
+            if (wifi != null) cm.bindProcessToNetwork(wifi)
+        }
+    }
+
+    fun unbind(context: android.content.Context) {
+        runCatching {
+            (context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager).bindProcessToNetwork(null)
+        }
+    }
+}

@@ -59,6 +59,7 @@ object Session {
         scope.launch {
             _busy.value = true; _error.value = null
             leave()
+            WifiBinding.bind(app)
             try {
                 val room = RoomIds.generate()
                 val s = HostServer(room, if (debugFixedCards) com.bumbaiya.lanplay.game.combinemaths.GameEngine(FixedRandom) else com.bumbaiya.lanplay.game.combinemaths.GameEngine())
@@ -84,6 +85,7 @@ object Session {
         leave()
         _error.value = null
         _joining.value = link to name
+        WifiBinding.bind(app)
         connect(link.host, link.port, name)
     }
 
@@ -112,6 +114,7 @@ object Session {
         _joining.value = null
         discovery.stopAdvertising()
         HostService.stop(app)
+        WifiBinding.unbind(app)
     }
 
     private fun connect(host: String, port: Int, name: String) {
