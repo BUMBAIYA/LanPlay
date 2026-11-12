@@ -3,7 +3,6 @@ package com.bumbaiya.lanplay.ui.components
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.pm.ActivityInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
@@ -18,8 +17,8 @@ private fun Context.findActivity(): Activity? = when (this) {
 }
 
 /**
- * While this is on screen the phone is held in landscape (either way up) and the system bars are
- * hidden for more table space. Leaving restores the user's normal orientation and the bars.
+ * While this is on screen the system bars are hidden for more table space; leaving restores them.
+ * (The whole app is landscape-only, set in the manifest.)
  */
 @Composable
 fun LockLandscape() {
@@ -27,12 +26,9 @@ fun LockLandscape() {
     DisposableEffect(activity) {
         val window = activity?.window
         val controller = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         controller?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         controller?.hide(WindowInsetsCompat.Type.systemBars())
         onDispose {
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            controller?.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 }
