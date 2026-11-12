@@ -23,11 +23,22 @@ class Rational private constructor(val num: BigInteger, val den: BigInteger) {
     val isZero get() = num.signum() == 0
     val isNegative get() = num.signum() < 0
 
+    /** Integer square root (floor) by Newton's method; BigInteger.sqrt() needs API 33. */
+    private fun isqrt(v: BigInteger): BigInteger {
+        if (v.signum() == 0) return BigInteger.ZERO
+        var x = BigInteger.ONE.shiftLeft((v.bitLength() + 1) / 2)
+        while (true) {
+            val y = (x + v / x).shiftRight(1)
+            if (y >= x) return x
+            x = y
+        }
+    }
+
     /** Exact square root, or null if the result is not a whole fraction (or negative). */
     fun sqrtOrNull(): Rational? {
         if (isNegative) return null
-        val n = num.sqrt()
-        val d = den.sqrt()
+        val n = isqrt(num)
+        val d = isqrt(den)
         return if (n * n == num && d * d == den) of(n, d) else null
     }
 
