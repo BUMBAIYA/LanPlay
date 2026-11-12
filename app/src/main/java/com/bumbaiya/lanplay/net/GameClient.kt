@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 sealed interface ConnectionStatus {
     data object Idle : ConnectionStatus
@@ -93,7 +94,7 @@ class GameClient(private val scope: CoroutineScope) {
                 if (_myId.value == null && failures >= 3) { _status.value = ConnectionStatus.Failed("Could not reach the host" + if (lastError.isNotBlank()) " ($lastError)" else ""); break }
                 if (failures > maxRetries) { _status.value = ConnectionStatus.Failed("Lost connection to the host"); break }
                 _status.value = if (_myId.value == null) ConnectionStatus.Connecting else ConnectionStatus.Reconnecting
-                delay(1500)
+                delay(1500.milliseconds)
             }
         }
     }

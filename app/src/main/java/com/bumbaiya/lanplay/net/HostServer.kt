@@ -29,6 +29,7 @@ import kotlinx.coroutines.sync.withLock
 import java.net.ServerSocket
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * The host phone's server. It is the only place the rules run: players send intents, the host
@@ -61,7 +62,7 @@ class HostServer(
         }.also { it.start(wait = false) }
         scope.launch {
             while (isActive) {
-                delay(250)
+                delay(250.milliseconds)
                 lock.withLock {
                     val s = _state.value ?: return@withLock
                     val n = engine.tick(s, clock())
@@ -109,8 +110,8 @@ class HostServer(
         val id: String
         val token: String
         if (knownId != null && current?.player(knownId) != null) {
-            id = knownId; token = msg.seatToken!!
-            current = engine.setConnected(current!!, id, true)
+            id = knownId; token = msg.seatToken
+            current = engine.setConnected(current, id, true)
         } else {
             id = UUID.randomUUID().toString(); token = UUID.randomUUID().toString()
             if (current == null) {
@@ -122,7 +123,7 @@ class HostServer(
             seatTokens[token] = id
         }
         sessions[id] = session
-        current = current!!.copy(stamp = clock())
+        current = current.copy(stamp = clock())
         _state.value = current
         send(session, ServerMessage.Welcome(id, token, current))
         broadcast(current, except = id)
