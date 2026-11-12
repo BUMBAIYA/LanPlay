@@ -100,7 +100,7 @@ fun SoloScreen(onBack: () -> Unit) {
                                 operators = cards.mapNotNull { it.op },
                             )
                         },
-                        target = target,
+                        target = target, actionsHeight = 46.dp,
                         onHit = {
                             score++
                             targetDigits.clear()

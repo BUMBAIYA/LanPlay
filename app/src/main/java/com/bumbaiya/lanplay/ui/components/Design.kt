@@ -115,9 +115,9 @@ fun BigButton(
         onClick = onClick, enabled = enabled, modifier = modifier.fillMaxWidth().heightIn(min = height), shape = RoundedCornerShape(16.dp),
         color = bg, contentColor = fg, border = if (primary || !enabled || container != null) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
-        Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        Row(Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
             if (icon != null) { DIcon(icon, tint = fg, size = 22.dp); androidx.compose.foundation.layout.Spacer(Modifier.size(10.dp)) }
-            Text(text, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = fontSize.sp)
+            Text(text, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = fontSize.sp, maxLines = 1, softWrap = false)
         }
     }
 }

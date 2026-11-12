@@ -134,7 +134,10 @@ private fun TableContent(client: GameClient, state: GameState, onLeave: () -> Un
             victim != null && phase is Phase.Turns -> CatchView(client, state, victim.id, victim.name, now) { catching = null }
             else -> Row(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 val others = state.players.filter { it.id != myId }
-                OpponentRail(state, currentId, now, myId, iAmOut, compact = others.size >= 4, onCatch = { catching = it }, onShow = { shownId = it }, modifier = Modifier.width(if (others.size >= 4) 140.dp else 200.dp))
+                // The rail takes a slice of the screen, so narrow phones keep room for the cards.
+                val screenW = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp
+                val railW = (screenW * (if (others.size >= 4) 0.17f else 0.22f)).dp.coerceIn(112.dp, if (others.size >= 4) 140.dp else 200.dp)
+                OpponentRail(state, currentId, now, myId, iAmOut, compact = others.size >= 4 || railW < 160.dp, onCatch = { catching = it }, onShow = { shownId = it }, modifier = Modifier.width(railW))
                 Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     HeaderRow(state, phase, now, myId,
                         sound, onLeave = { confirmLeave = true }, onSound = { Session.settings.setSound(!sound) })
@@ -207,8 +210,14 @@ private fun CardsDialog(name: String, cards: List<com.bumbaiya.lanplay.ui.game.B
         Surface(shape = RoundedCornerShape(24.dp), color = Color(0xFF171C24), border = BorderStroke(3.dp, Color.White), modifier = Modifier.clickable(onClick = onClose)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("$name's cards" + if (out) " (out)" else "", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
+                // Everything shrinks to fit the screen, however many cards the player holds.
+                val cfg = androidx.compose.ui.platform.LocalConfiguration.current
+                val fit = com.bumbaiya.lanplay.ui.components.fitScale(
+                    cards.size, DeckCardSize.Large.width, DeckCardSize.Large.height, 8.dp,
+                    availW = (cfg.screenWidthDp * 0.85f - 40f).dp, availH = (cfg.screenHeightDp - 160f).dp,
+                )
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    cards.forEach { c -> DeckCard(c.glyph, c.kind, altGlyph = c.alt, size = DeckCardSize.Large, dimmed = out) }
+                    cards.forEach { c -> DeckCard(c.glyph, c.kind, altGlyph = c.alt, size = DeckCardSize.Large, scale = fit, dimmed = out) }
                 }
                 Text("Tap anywhere to close", fontSize = 12.sp, color = Color(0xFF9AA3B2))
             }
@@ -222,11 +231,12 @@ private fun CardsDialog(name: String, cards: List<com.bumbaiya.lanplay.ui.game.B
 private fun HeaderRow(state: GameState, phase: Phase, now: Long, myId: String,
                       sound: Boolean, onLeave: () -> Unit, onSound: () -> Unit) {
     val shown = (phase as? Phase.DrawingTarget)?.digits ?: state.target
+    val narrow = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 700
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(40.dp).clickable(onClick = onLeave), contentAlignment = Alignment.Center) { DIcon(DI.Back) }
         Column(Modifier.weight(1f)) {
-            Text("Round ${state.round} · to ${state.settings.winScore}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Round ${state.round} · to ${state.settings.winScore}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, softWrap = false)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 state.players.forEach { p ->
                     val score by animateIntAsState(p.score, tween(700), label = "score")
                     Text(
@@ -238,7 +248,7 @@ private fun HeaderRow(state: GameState, phase: Phase, now: Long, myId: String,
         }
         // target
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("TARGET", fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = Color(0xFFB6F24A))
+            if (!narrow) Text("TARGET", fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp, color = Color(0xFFB6F24A))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.heightIn(min = 58.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (shown.isEmpty()) Text("?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f))
                 shown.forEachIndexed { i, d -> androidx.compose.runtime.key(i) { FlipIn { DeckCard(d.toString(), CardKind.Number, size = DeckCardSize.Target) } } }
@@ -250,7 +260,7 @@ private fun HeaderRow(state: GameState, phase: Phase, now: Long, myId: String,
             val secs = ((phase.turnEndsAt - now) / 1000 + 1).toInt().coerceIn(0, total)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TimerRing(secs, total, if (myTurn) Color(0xFFB6F24A) else Color(0xFF9AA3B2), 44.dp)
-                Text(
+                if (!narrow) Text(
                     if (myTurn) "Your turn" else (state.player(phase.currentId)?.name ?: "") + "'s turn", fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
                     color = if (myTurn) Color(0xFFB6F24A) else Color(0xFF9AA3B2), modifier = if (myTurn) Modifier.pulse() else Modifier, maxLines = 1,
                 )
@@ -310,7 +320,12 @@ private fun OpponentRail(
     state: GameState, currentId: String?, now: Long, myId: String, iAmOut: Boolean, compact: Boolean,
     onCatch: (String) -> Unit, onShow: (String) -> Unit, modifier: Modifier = Modifier,
 ) {
-    Column(modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxHeight()) {
+    // Squeeze the items (smaller avatar, tighter padding) when there are many opponents or a short screen.
+    val opponents = (state.players.size - 1).coerceAtLeast(1)
+    val dense = (maxHeight - 6.dp * (opponents - 1)) / opponents < 74.dp
+    val pad = if (dense) 4.dp else 8.dp
+    Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(if (dense) 4.dp else 6.dp)) {
         state.players.forEachIndexed { index, p ->
             if (p.id == myId) return@forEachIndexed
             val rp = state.hands[p.id]
@@ -322,10 +337,10 @@ private fun OpponentRail(
                 onClick = { onShow(p.id) }, shape = RoundedCornerShape(12.dp), color = Color.White.copy(alpha = 0.06f),
                 border = BorderStroke(if (turn) 2.dp else 1.dp, if (turn) Color(0xFFB6F24A) else Color.White.copy(alpha = 0.18f)),
             ) {
-                Column(Modifier.fillMaxWidth().padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.fillMaxWidth().padding(pad), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Box {
-                            Avatar(index, p.name, if (compact) 38.dp else 34.dp, ring = turn)
+                            Avatar(index, p.name, if (dense) 30.dp else if (compact) 38.dp else 34.dp, ring = turn)
                             Text(
                                 "${cards.size}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF10131C),
                                 modifier = Modifier.align(Alignment.BottomEnd).offset(x = 6.dp, y = 4.dp).background(Color.White, androidx.compose.foundation.shape.CircleShape).padding(horizontal = 5.dp, vertical = 1.dp),
@@ -342,7 +357,7 @@ private fun OpponentRail(
                             Text("Catch", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0E1116), modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp))
                         }
                     }
-                    if (!compact) {
+                    if (!compact && !dense) {
                         androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             cards.take(4).forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, size = DeckCardSize.Small, dimmed = out) }
                             if (cards.size > 4) Text("+${cards.size - 4}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB6F24A), modifier = Modifier.align(Alignment.CenterVertically).padding(horizontal = 4.dp))
@@ -352,6 +367,7 @@ private fun OpponentRail(
             }
         }
     }
+}
 }
 
 // ---------- my turn ----------
@@ -376,13 +392,14 @@ private fun MyTurn(client: GameClient, state: GameState, phase: Phase.Turns, myI
         state = builder, engineHand = { builder.allCards().toEngineHand() }, target = state.targetValue ?: 0,
         onSubmit = { expr -> client.send(Intent.Submit(expr)) },
         penaltyMs = state.settings.penaltySeconds * 1000L, liveResult = state.settings.showLiveResult,
-        enabled = myTurn,
+        enabled = myTurn, actionsHeight = 74.dp,
         actions = { submit, _, locked ->
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    DrawButton("Draw number", MaterialTheme.lanPlayColors.numberLabel, !phase.hasDrawn && myTurn, Modifier.weight(1f)) { client.send(Intent.DrawCard(number = true)); Feedback.draw() }
-                    DrawButton("Draw operator", MaterialTheme.lanPlayColors.operatorLabel, !phase.hasDrawn && myTurn, Modifier.weight(1f)) { client.send(Intent.DrawCard(number = false)); Feedback.draw() }
-                    BigButton("Pass", { client.send(Intent.Pass) }, Modifier.weight(0.7f), icon = DI.Pass, primary = false, enabled = myTurn && phase.hasDrawn, height = 48.dp, fontSize = 15)
+                    val narrowBtns = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 700
+                    DrawButton(if (narrowBtns) "Number" else "Draw number", MaterialTheme.lanPlayColors.numberLabel, !phase.hasDrawn && myTurn, Modifier.weight(1f)) { client.send(Intent.DrawCard(number = true)); Feedback.draw() }
+                    DrawButton(if (narrowBtns) "Operator" else "Draw operator", MaterialTheme.lanPlayColors.operatorLabel, !phase.hasDrawn && myTurn, Modifier.weight(1f)) { client.send(Intent.DrawCard(number = false)); Feedback.draw() }
+                    BigButton("Pass", { client.send(Intent.Pass) }, Modifier.weight(0.9f), icon = DI.Pass, primary = false, enabled = myTurn && phase.hasDrawn, height = 48.dp, fontSize = 15)
                     BigButton(if (locked && myTurn) "Wait..." else "Submit", submit, Modifier.weight(1.2f), icon = DI.Check, enabled = myTurn && !locked, height = 48.dp, fontSize = 16)
                 }
                 if (myTurn && !phase.hasDrawn) Text("Draw a card to be allowed to pass.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -473,7 +490,8 @@ private fun ScoresView(client: GameClient, state: GameState, myId: String, isAdm
                 } else Text("Waiting for the host...", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.pulse())
                 BigButton("Leave room", onLeave, icon = DI.Leave, primary = false, height = 44.dp, fontSize = 15)
             }
-            Column(Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            val tight = ordered.size > 4
+            Column(Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(if (tight) 4.dp else 6.dp)) {
                 SectionLabel("Series · first to ${state.settings.winScore}")
                 ordered.forEachIndexed { i, p ->
                     val gain = p.score - (startScores[p.id] ?: p.score)
@@ -485,13 +503,13 @@ private fun ScoresView(client: GameClient, state: GameState, myId: String, isAdm
                         shape = RoundedCornerShape(12.dp), color = Color.White.copy(alpha = 0.06f),
                         border = BorderStroke(if (leader) 2.dp else 1.dp, if (leader) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.18f)),
                     ) {
-                        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = if (tight) 3.dp else 7.dp), verticalArrangement = Arrangement.spacedBy(if (tight) 2.dp else 5.dp)) {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Text("${i + 1}. ${if (p.id == myId) "You" else p.name}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                                 if (caught) Text("  · out", fontSize = 12.sp, color = MaterialTheme.lanPlayColors.onDangerContainer)
                                 Spacer(Modifier.weight(1f))
                                 if (gain > 0) Text("+$gain  ", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB6F24A))
-                                Text("$shown", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                Text("$shown", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = if (tight) 16.sp else 20.sp)
                             }
                             val barColor = when { caught -> MaterialTheme.lanPlayColors.danger; leader -> MaterialTheme.colorScheme.primary; else -> Color(0xFF5BA3E6) }
                             Box(Modifier.fillMaxWidth().height(5.dp).background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(3.dp))) {

@@ -59,6 +59,8 @@ fun DeckCard(
     kind: CardKind,
     modifier: Modifier = Modifier,
     size: DeckCardSize = DeckCardSize.Medium,
+    /** Shrinks the card (and its text) so many cards can share a row; 1 = full size. */
+    scale: Float = 1f,
     dimmed: Boolean = false,
     /**
      * For two-in-one cards (+ with x, - with ÷). The [glyph] is the ACTIVE action, drawn big.
@@ -73,7 +75,8 @@ fun DeckCard(
     val ink = when { wild -> WildInk; kind == CardKind.Number -> NumberInk; else -> OperatorInk }
     val shown = if (wild) "★" else glyph
     val small = size == DeckCardSize.Small
-    val radius = if (small) 6.dp else 10.dp
+    val radius = (if (small) 6.dp else 10.dp) * scale
+    val glyphSize = size.glyph * scale
 
     // Tilt animation: whenever the active glyph changes (the player tapped), the card swings over and springs back.
     val tilt = remember { Animatable(0f) }
@@ -91,7 +94,7 @@ fun DeckCard(
 
     Box(
         modifier = modifier
-            .size(size.width, size.height)
+            .size(size.width * scale, size.height * scale)
             .graphicsLayer { rotationZ = tilt.value; scaleX = pop.value; scaleY = pop.value }
             .alpha(if (dimmed) 0.4f else 1f)
             .combinedClickable(enabled = onClick != null || onLongClick != null, onClick = { onClick?.invoke() }, onLongClick = onLongClick)
@@ -107,15 +110,15 @@ fun DeckCard(
     ) {
         if (!small) {
             Text(
-                shown, color = ink.copy(alpha = 0.75f), fontFamily = SpaceGrotesk, fontSize = size.glyph * 0.34f, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.align(Alignment.TopStart).padding(start = 5.dp, top = 2.dp),
+                shown, color = ink.copy(alpha = 0.75f), fontFamily = SpaceGrotesk, fontSize = glyphSize * 0.34f, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.align(Alignment.TopStart).padding(start = 5.dp * scale, top = 2.dp * scale),
             )
         }
-        Text(shown, color = ink, fontFamily = SpaceGrotesk, fontSize = size.glyph, fontWeight = FontWeight.Bold)
+        Text(shown, color = ink, fontFamily = SpaceGrotesk, fontSize = glyphSize, fontWeight = FontWeight.Bold)
         if (altGlyph != null) {
             Text(
-                altGlyph, color = ink.copy(alpha = 0.45f), fontFamily = SpaceGrotesk, fontSize = size.glyph * 0.5f, fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.BottomStart).padding(start = if (small) 2.dp else 6.dp, bottom = 1.dp),
+                altGlyph, color = ink.copy(alpha = 0.45f), fontFamily = SpaceGrotesk, fontSize = glyphSize * 0.5f, fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.BottomStart).padding(start = (if (small) 2.dp else 6.dp) * scale, bottom = 1.dp),
             )
         }
     }

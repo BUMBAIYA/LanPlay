@@ -27,7 +27,12 @@ import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 
 /** Watching another player work: their row appears card by card as they place it. */
 @Composable
-fun WatchedRow(row: List<RowSlot>, name: String) {
+fun WatchedRow(row: List<RowSlot>, name: String) = androidx.compose.foundation.layout.BoxWithConstraints {
+    // Long rows shrink and wrap instead of running off the screen.
+    val fit = com.bumbaiya.lanplay.ui.components.fitScale(
+        row.size, DeckCardSize.Row.width, DeckCardSize.Row.height, 8.dp, maxWidth, (maxHeight - 30.dp).coerceAtLeast(80.dp),
+        extraW = 10.dp, extraH = 6.dp,
+    )
     Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             if (row.isEmpty()) "$name is thinking..." else "$name is building:",
@@ -36,19 +41,19 @@ fun WatchedRow(row: List<RowSlot>, name: String) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             row.forEachIndexed { i, slot ->
                 // key on position + faces so a card pops in when it appears or changes (like a tilt)
-                androidx.compose.runtime.key(i, slot) { PopIn { WatchedSlot(slot) } }
+                androidx.compose.runtime.key(i, slot) { PopIn { WatchedSlot(slot, fit) } }
             }
         }
     }
 }
 
 @Composable
-private fun WatchedSlot(slot: RowSlot) {
+private fun WatchedSlot(slot: RowSlot, scale: Float) {
     val kind = if (slot.glyph.firstOrNull()?.isDigit() == true) CardKind.Number else CardKind.Operator
     Box(Modifier.padding(top = 6.dp, end = 10.dp)) {
-        DeckCard(slot.glyph, kind, size = DeckCardSize.Row)
+        DeckCard(slot.glyph, kind, size = DeckCardSize.Row, scale = scale)
         slot.raised?.let {
-            DeckCard(it, CardKind.Number, size = DeckCardSize.Small, modifier = Modifier.align(Alignment.TopEnd).offset(x = 10.dp, y = (-8).dp))
+            DeckCard(it, CardKind.Number, size = DeckCardSize.Small, scale = scale.coerceAtLeast(0.7f), modifier = Modifier.align(Alignment.TopEnd).offset(x = 10.dp, y = (-8).dp))
         }
     }
 }
