@@ -6,7 +6,7 @@ import kotlin.random.Random
  * The referee. It holds no state of its own: every call takes a [GameState] and returns a new
  * one (or a rejection). That makes it trivial to unit-test and safe to run on the host only.
  *
- * Times are passed in as [now] (epoch milliseconds) instead of reading the clock, so tests can
+ * Times are passed in as `now` (epoch milliseconds) instead of reading the clock, so tests can
  * move time forward by hand.
  */
 class GameEngine(private val random: Random = Random.Default) {
