@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -136,29 +137,21 @@ fun ExpressionBuilder(
     }
 
     Box(modifier.onGloballyPositioned { origin = it.positionInRoot() }) {
-        Column(verticalArrangement = Arrangement.spacedBy(if (style == BuilderStyle.Catch) 20.dp else 6.dp)) {
-            if (style == BuilderStyle.Catch) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SectionLabel(cardsTitle)
-                CardRow(null, colors.numberLabel, state.owned(), state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin, DeckCardSize.Large, 10.dp)
-                if (cardsHint.isNotEmpty()) Text(cardsHint, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(if (style == BuilderStyle.Catch) 10.dp else 6.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    SectionLabel(if (style == BuilderStyle.Catch) "Your proof" else "Your expression")
-                    if (style == BuilderStyle.Table) androidx.compose.material3.TextButton(onClick = ::clear, modifier = Modifier.heightIn(min = 28.dp)) {
-                        Text("Clear", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                // The expression strip: tap or drop cards here. Scrolls sideways when it gets long.
-                val proof = style == BuilderStyle.Catch
+        val proof = style == BuilderStyle.Catch
+        Column(verticalArrangement = Arrangement.spacedBy(if (proof) 8.dp else 6.dp)) {
+            // The victim's cards, when proving a catch.
+            if (proof) CardRow(null, colors.numberLabel, state.owned(), state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin, DeckCardSize.Medium, 8.dp)
+
+            // The expression strip: tap or drop cards here. Scrolls sideways when it gets long.
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth().heightIn(min = if (proof) 96.dp else 70.dp)
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp))
-                        .border(2.dp, stripColor, RoundedCornerShape(14.dp))
+                        .weight(1f).heightIn(min = if (proof) 80.dp else 76.dp)
+                        .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+                        .border(1.5.dp, stripColor, RoundedCornerShape(12.dp))
                         .onGloballyPositioned { trayBounds = it.boundsInRoot() }
                         .horizontalScroll(androidx.compose.foundation.rememberScrollState())
-                        .padding(horizontal = if (proof) 14.dp else 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -166,7 +159,7 @@ fun ExpressionBuilder(
                     state.slots.forEachIndexed { index, slot ->
                         Box(
                             modifier = Modifier
-                                .padding(top = 12.dp, end = 10.dp) // always reserve room for a raised card so the row never jumps
+                                .padding(top = 10.dp, end = 10.dp) // always reserve room for a raised card so the row never jumps
                                 .onGloballyPositioned { slotBounds[slot.id] = it.boundsInRoot() }
                                 .then(if (index == hovered) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)) else Modifier),
                         ) {
@@ -180,7 +173,7 @@ fun ExpressionBuilder(
                                 // The raised card: small, up and to the right. Tap it to un-raise.
                                 DeckCard(
                                     glyph = e.glyph, kind = e.kind, size = DeckCardSize.Small,
-                                    modifier = Modifier.align(Alignment.TopEnd).offset(x = 10.dp, y = (-12).dp),
+                                    modifier = Modifier.align(Alignment.TopEnd).offset(x = 10.dp, y = (-10).dp),
                                     onClick = { state.unraise(index) },
                                 )
                             }
@@ -188,45 +181,43 @@ fun ExpressionBuilder(
                     }
                     // The empty dashed slot at the end: where the next card goes.
                     val dash = MaterialTheme.lanPlayColors.cardBorder
-                    Box(Modifier.padding(top = 12.dp).size(if (proof) 52.dp else 44.dp, if (proof) 70.dp else 60.dp).drawBehind {
+                    Box(Modifier.padding(top = 10.dp).size(if (proof) 48.dp else 44.dp, if (proof) 66.dp else 60.dp).drawBehind {
                         drawRoundRect(dash, cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(), pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))))
                     })
                 }
-                val owned = state.owned()
-                val used = owned.count { state.isUsed(it) }
-                if (liveResult) {
-                    // The admin turned on the live result: always show a clear box so players can see it is on.
-                    val r = if (state.slots.isEmpty()) null else ExpressionEvaluator.evaluate(state.expression(), engineHand())
-                    val value = (r as? EvalResult.Value)?.value?.toString()
-                    Row(
-                        Modifier.fillMaxWidth().background(MaterialTheme.lanPlayColors.successContainer, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Text("Result", fontSize = 13.sp, color = MaterialTheme.lanPlayColors.onSuccessContainer)
-                        Text(
-                            when { value != null -> "= $value"; state.slots.isEmpty() -> "Build a row to see its result"; else -> "= ?  (not complete yet)" },
-                            fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = if (value != null) 22.sp else 14.sp,
-                            color = MaterialTheme.lanPlayColors.onSuccessContainer,
-                        )
-                    }
+                if (style == BuilderStyle.Table) androidx.compose.material3.TextButton(onClick = ::clear, modifier = Modifier.heightIn(min = 36.dp)) {
+                    Text("Clear", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                message?.let { Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface) }
-                if (style == BuilderStyle.Catch && proofHint.isNotEmpty()) Text(proofHint, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            if (liveResult) {
+                // The admin turned on the live result: always show a clear box so players can see it is on.
+                val r = if (state.slots.isEmpty()) null else ExpressionEvaluator.evaluate(state.expression(), engineHand())
+                val value = (r as? EvalResult.Value)?.value?.toString()
+                Row(
+                    Modifier.fillMaxWidth().background(MaterialTheme.lanPlayColors.successContainer, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text("Result", fontSize = 12.sp, color = MaterialTheme.lanPlayColors.onSuccessContainer)
+                    Text(
+                        when { value != null -> "= $value"; state.slots.isEmpty() -> "Build a row to see its result"; else -> "= ?  (not complete yet)" },
+                        fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = if (value != null) 18.sp else 13.sp,
+                        color = MaterialTheme.lanPlayColors.onSuccessContainer,
+                    )
+                }
+            }
+            message?.let { Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface, maxLines = 1) }
 
             if (style == BuilderStyle.Table) {
                 val owned = state.owned()
                 val numbers = owned.filter { it.kind == CardKind.Number }
                 val operators = owned.filter { it.kind == CardKind.Operator }
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CardRow(null, colors.numberLabel, numbers + operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin)
-                }
+                CardRow(null, colors.numberLabel, numbers + operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin)
             }
 
             if (actions != null) actions(::submit, ::clear, locked || !enabled)
             else Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                BigButton(if (locked) "Wait..." else submitLabel, ::submit, Modifier.weight(1f), icon = DI.Check, enabled = !locked && enabled, height = 52.dp)
-                BigButton("Clear", ::clear, icon = DI.Close, primary = false, height = 52.dp, modifier = Modifier.width(120.dp))
+                BigButton(if (locked) "Wait..." else submitLabel, ::submit, Modifier.weight(1f), icon = DI.Check, enabled = !locked && enabled, height = 48.dp)
+                BigButton("Clear", ::clear, icon = DI.Close, primary = false, height = 48.dp, modifier = Modifier.width(120.dp))
             }
         }
 
@@ -247,7 +238,7 @@ private fun CardRow(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (label != null) Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = labelColor)
-        Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).heightIn(min = 74.dp), horizontalArrangement = Arrangement.spacedBy(gap)) {
+        Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).heightIn(min = 76.dp).padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(gap)) {
             cards.forEach { card ->
                 if (state.isUsed(card)) {
                     // Used cards stay in place but faded; tap one to take it back.

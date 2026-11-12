@@ -30,12 +30,12 @@ import com.bumbaiya.lanplay.ui.components.DeckCardSize
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WatchedRow(row: List<RowSlot>, name: String) {
-    Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             if (row.isEmpty()) "$name is thinking..." else "$name is building:",
             style = MaterialTheme.typography.labelLarge, color = MaterialTheme.lanPlayColors.accentText,
         )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             row.forEachIndexed { i, slot ->
                 // key on position + faces so a card pops in when it appears or changes (like a tilt)
                 androidx.compose.runtime.key(i, slot) { PopIn { WatchedSlot(slot) } }
@@ -47,8 +47,8 @@ fun WatchedRow(row: List<RowSlot>, name: String) {
 @Composable
 private fun WatchedSlot(slot: RowSlot) {
     val kind = if (slot.glyph.firstOrNull()?.isDigit() == true) CardKind.Number else CardKind.Operator
-    Box(Modifier.padding(top = 8.dp, end = 10.dp)) {
-        DeckCard(slot.glyph, kind, size = DeckCardSize.Medium)
+    Box(Modifier.padding(top = 6.dp, end = 10.dp)) {
+        DeckCard(slot.glyph, kind, size = DeckCardSize.Row)
         slot.raised?.let {
             DeckCard(it, CardKind.Number, size = DeckCardSize.Small, modifier = Modifier.align(Alignment.TopEnd).offset(x = 10.dp, y = (-8).dp))
         }
