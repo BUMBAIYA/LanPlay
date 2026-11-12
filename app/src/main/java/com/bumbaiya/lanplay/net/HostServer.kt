@@ -114,10 +114,10 @@ class HostServer(
             current = engine.setConnected(current, id, true)
         } else {
             id = UUID.randomUUID().toString(); token = UUID.randomUUID().toString()
-            if (current == null) {
-                current = engine.newGame(roomId, id, msg.name)
+            current = if (current == null) {
+                engine.newGame(roomId, id, msg.name)
             } else when (val o = engine.addPlayer(current, id, msg.name)) {
-                is Outcome.Ok -> current = o.state
+                is Outcome.Ok -> o.state
                 is Outcome.Rejected -> { reject(session, o.reason); return null }
             }
             seatTokens[token] = id

@@ -1,5 +1,6 @@
 package com.bumbaiya.lanplay.platform
 
+import android.app.Application
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Finding a room by its ID with no typing of addresses. The host announces itself on the local
@@ -17,7 +19,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  * for that name and gets the address from the answer.
  */
 class RoomDiscovery(context: Context) {
-    private val app = context.applicationContext
+    private val app: Application = context.applicationContext as Application
     private val nsd = app.getSystemService(Context.NSD_SERVICE) as NsdManager
     private val wifi = app.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private var multicastLock: WifiManager.MulticastLock? = null
@@ -63,7 +65,7 @@ class RoomDiscovery(context: Context) {
             }
             override fun onServiceLost(info: NsdServiceInfo) {
                 val id = info.serviceName.removePrefix(SERVICE_PREFIX)
-                _rooms.value = _rooms.value - id
+                _rooms.value -= id
             }
         }
         discovery = l
@@ -80,7 +82,7 @@ class RoomDiscovery(context: Context) {
 
     /** Waits up to [timeoutMs] for [roomId] to show up. Returns null if it never does. */
     suspend fun find(roomId: String, timeoutMs: Long = 8000): JoinLink? =
-        withTimeoutOrNull(timeoutMs) { _rooms.map { it[roomId.uppercase()] }.first { it != null } }
+        withTimeoutOrNull(timeoutMs.milliseconds) { _rooms.map { it[roomId.uppercase()] }.first { it != null } }
 
     @Suppress("DEPRECATION") // the replacement needs API 34; this works on every version we support
     private fun resolve(info: NsdServiceInfo) {
@@ -95,7 +97,7 @@ class RoomDiscovery(context: Context) {
                     val v4 = (i.host as? java.net.Inet4Address)?.hostAddress
                     val host = announced ?: v4 ?: i.host?.hostAddress?.substringBefore('%') ?: return
                     val id = i.serviceName.removePrefix(SERVICE_PREFIX)
-                    _rooms.value = _rooms.value + (id to JoinLink(id, host, i.port))
+                    _rooms.value += (id to JoinLink(id, host, i.port))
                 }
             })
         }

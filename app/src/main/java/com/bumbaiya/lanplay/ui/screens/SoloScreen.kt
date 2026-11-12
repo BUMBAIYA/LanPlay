@@ -1,43 +1,20 @@
 package com.bumbaiya.lanplay.ui.screens
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import com.bumbaiya.lanplay.ui.components.BigButton
-import com.bumbaiya.lanplay.ui.components.DI
-import com.bumbaiya.lanplay.ui.components.Header
-import com.bumbaiya.lanplay.ui.components.Panel
-import com.bumbaiya.lanplay.ui.components.SectionLabel
-import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
-
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
-import androidx.compose.material.icons.filled.*
-import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import com.bumbaiya.lanplay.ui.theme.lanPlayColors
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import com.bumbaiya.lanplay.ui.components.ScreenColumn
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -45,16 +22,25 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bumbaiya.lanplay.game.combinemaths.Hand
+import com.bumbaiya.lanplay.ui.components.BigButton
 import com.bumbaiya.lanplay.ui.components.CardKind
+import com.bumbaiya.lanplay.ui.components.DI
 import com.bumbaiya.lanplay.ui.components.DeckCard
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
 import com.bumbaiya.lanplay.ui.game.BuilderState
 import com.bumbaiya.lanplay.ui.game.CardPool
 import com.bumbaiya.lanplay.ui.game.ExpressionBuilder
+import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
+import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 private enum class SoloPhase { Setup, Playing, Over }
 private const val ROUND_SECONDS = 60
@@ -76,7 +62,7 @@ fun SoloScreen(onBack: () -> Unit) {
     LaunchedEffect(phase, round) {
         if (phase == SoloPhase.Playing) {
             secondsLeft = ROUND_SECONDS
-            while (secondsLeft > 0) { delay(1000); secondsLeft-- }
+            while (secondsLeft > 0) { delay(1000.milliseconds); secondsLeft-- }
             phase = SoloPhase.Over
         }
     }

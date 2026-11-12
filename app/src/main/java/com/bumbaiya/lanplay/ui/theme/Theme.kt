@@ -51,6 +51,7 @@ private val LightColorScheme = lightColorScheme(
 private val LocalLanPlayColors = staticCompositionLocalOf { DarkLanPlayColors }
 
 /** Extra LanPlay colors that sit alongside [MaterialTheme.colorScheme]. */
+@Suppress("UnusedReceiverParameter") // the receiver only makes it read as MaterialTheme.lanPlayColors
 val MaterialTheme.lanPlayColors: LanPlayColors
     @Composable
     @ReadOnlyComposable

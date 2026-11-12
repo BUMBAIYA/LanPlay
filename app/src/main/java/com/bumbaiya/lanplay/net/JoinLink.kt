@@ -20,7 +20,7 @@ data class JoinLink(val room: String, val host: String, val port: Int) {
     }
 }
 
-/** Room IDs are short and easy to read out loud: no 0/O or 1/I mix-ups. */
+/** Room IDs are short and easy to read out loud: no '0/O' or '1/I' mix-ups. */
 object RoomIds {
     private const val ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     const val LENGTH = 4

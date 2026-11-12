@@ -41,11 +41,6 @@ class BuilderState(initialHand: List<BCard>) {
     val slots = mutableStateListOf<Slot>()
     private var nextSlotId = 1
 
-    fun tiltInHand(card: BCard) {
-        val i = hand.indexOfFirst { it.id == card.id }
-        if (i >= 0) hand[i] = hand[i].tilted()
-    }
-
     fun tiltInSlot(index: Int) {
         slots[index] = slots[index].copy(card = slots[index].card.tilted())
     }

@@ -36,8 +36,8 @@ val Inter = FontFamily(
  * Headings and numbers use Space Grotesk, everything you read uses Inter, as in the design.
  */
 private val Base = Typography()
-private fun androidx.compose.ui.text.TextStyle.heading() = copy(fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold)
-private fun androidx.compose.ui.text.TextStyle.text() = copy(fontFamily = Inter)
+private fun TextStyle.heading() = copy(fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold)
+private fun TextStyle.text() = copy(fontFamily = Inter)
 
 val Typography = Typography(
     displayLarge = Base.displayLarge.heading(),

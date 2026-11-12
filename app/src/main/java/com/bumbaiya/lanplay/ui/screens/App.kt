@@ -1,10 +1,6 @@
 package com.bumbaiya.lanplay.ui.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
-import androidx.compose.material.icons.filled.*
-import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,14 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
 import com.bumbaiya.lanplay.ui.components.DeckCard
@@ -44,7 +36,6 @@ import com.bumbaiya.lanplay.game.combinemaths.Phase
 import com.bumbaiya.lanplay.net.ConnectionStatus
 import com.bumbaiya.lanplay.net.GameClient
 import com.bumbaiya.lanplay.platform.Session
-import com.bumbaiya.lanplay.ui.components.BackLink
 import com.bumbaiya.lanplay.ui.components.ScreenColumn
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,7 +48,7 @@ private enum class Screen { Games, GameMenu, Settings, Host, Join, Solo, HowTo, 
 
 /**
  * The app's navigation. If we're inside a multiplayer game, the game's phase decides what to show
- * (connecting, lobby, table). Otherwise the menu screens apply, and Back goes up one level.
+ * (connecting, lobby, table). Otherwise, the menu screens apply, and Back goes up one level.
  */
 @Composable
 fun LanPlayApp() {
@@ -97,11 +88,11 @@ private fun GameFlow(client: GameClient) {
         s != null && status is ConnectionStatus.Failed -> ScreenColumn(gap = 20.dp) {
             androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 56.dp))
             Text(
-                if ((status as ConnectionStatus.Failed).reason.contains("removed")) "You were removed" else "The host left the game", fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 26.sp,
+                if ((status as ConnectionStatus.Failed).reason.contains("removed")) "You were removed" else "The host left the game", fontFamily = SpaceGrotesk,
+                fontWeight = FontWeight.Bold, fontSize = 26.sp,
             )
             Text((status as ConnectionStatus.Failed).reason.let { if (it.contains("removed")) "$it." else "$it. The room has closed." }, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            com.bumbaiya.lanplay.ui.components.BigButton("Back to home", { Session.leave() }, icon = com.bumbaiya.lanplay.ui.components.DI.Close, height = 56.dp)
+            BigButton("Back to home", { Session.leave() }, icon = DI.Close, height = 56.dp)
         }
         s == null -> ConnectingScreen(status)
         s.phase == Phase.Lobby -> LobbyScreen(client, s, onLeave = { Session.leave() })
@@ -110,7 +101,7 @@ private fun GameFlow(client: GameClient) {
     if (s != null && status is ConnectionStatus.Reconnecting) {
         Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.TopCenter) {
             Text(
-                "Reconnecting…", fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                "Reconnecting…", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onError,
                 modifier = Modifier.background(MaterialTheme.colorScheme.error, androidx.compose.foundation.shape.RoundedCornerShape(50)).padding(horizontal = 14.dp, vertical = 6.dp),
             )
@@ -130,15 +121,15 @@ private fun ConnectingScreen(status: ConnectionStatus) {
             Box(Modifier.size(88.dp), contentAlignment = Alignment.Center) {
                 if (failed == null) androidx.compose.material3.CircularProgressIndicator(Modifier.size(88.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 5.dp, trackColor = MaterialTheme.colorScheme.outline)
                 else Box(Modifier.size(88.dp).background(MaterialTheme.lanPlayColors.dangerContainer, androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
-                    com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Close, tint = MaterialTheme.lanPlayColors.onDangerContainer, size = 36.dp)
+                    DIcon(DI.Close, tint = MaterialTheme.lanPlayColors.onDangerContainer, size = 36.dp)
                 }
             }
             Text(
                 if (failed == null) "Joining room" else "Could not join",
-                fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 28.sp,
+                fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 28.sp,
             )
             link?.takeIf { it.room != "DEBUG" }?.let {
-                Text(it.room, fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 40.sp, letterSpacing = 8.sp, color = MaterialTheme.lanPlayColors.accentText)
+                Text(it.room, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 40.sp, letterSpacing = 8.sp, color = MaterialTheme.lanPlayColors.accentText)
             }
             Text(
                 failed?.reason ?: "Connecting to the host…", fontSize = 16.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -150,16 +141,16 @@ private fun ConnectingScreen(status: ConnectionStatus) {
                 listOf("Host address" to "${link.host}:${link.port}", "Playing as" to (target?.second ?: "")).forEach { (k, v) ->
                     Row(Modifier.fillMaxWidth().heightIn(min = 28.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(k, Modifier.weight(1f), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(v, fontFamily = com.bumbaiya.lanplay.ui.theme.SpaceGrotesk, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 15.sp)
+                        Text(v, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
                 }
             }
         }
         if (failed != null) {
             Text("Make sure both phones are on the same Wi-Fi or hotspot. Some Wi-Fi networks stop phones from talking to each other; if so, use the host's hotspot instead.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            com.bumbaiya.lanplay.ui.components.BigButton("Try again", { Session.retryJoin() }, icon = com.bumbaiya.lanplay.ui.components.DI.Join)
+            BigButton("Try again", { Session.retryJoin() }, icon = DI.Join)
         }
-        com.bumbaiya.lanplay.ui.components.BigButton(if (failed != null) "Back" else "Cancel", { Session.leave() }, icon = com.bumbaiya.lanplay.ui.components.DI.Close, primary = false, height = 52.dp, fontSize = 16)
+        BigButton(if (failed != null) "Back" else "Cancel", { Session.leave() }, icon = DI.Close, primary = false, height = 52.dp, fontSize = 16)
     }
 }
 
@@ -173,7 +164,6 @@ private fun CardTrio() = Row(horizontalArrangement = Arrangement.spacedBy(8.dp))
 
 @Composable
 private fun GamesScreen(onOpen: () -> Unit, onSettings: () -> Unit) {
-    val accent = MaterialTheme.colorScheme.primary
     ScreenColumn(gap = 28.dp) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

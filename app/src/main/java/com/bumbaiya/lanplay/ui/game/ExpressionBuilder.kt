@@ -1,41 +1,21 @@
 package com.bumbaiya.lanplay.ui.game
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import com.bumbaiya.lanplay.ui.components.BigButton
-import com.bumbaiya.lanplay.ui.components.DI
-import com.bumbaiya.lanplay.ui.components.SectionLabel
-import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
-import com.bumbaiya.lanplay.ui.theme.lanPlayColors
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
-import androidx.compose.material.icons.filled.*
-import com.bumbaiya.lanplay.ui.components.IconLabel
 import androidx.compose.foundation.border
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,30 +24,38 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bumbaiya.lanplay.game.combinemaths.EvalResult
 import com.bumbaiya.lanplay.game.combinemaths.ExpressionEvaluator
 import com.bumbaiya.lanplay.game.combinemaths.Hand
+import com.bumbaiya.lanplay.ui.components.BigButton
 import com.bumbaiya.lanplay.ui.components.CardKind
+import com.bumbaiya.lanplay.ui.components.DI
 import com.bumbaiya.lanplay.ui.components.DeckCard
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
+import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
+import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 /** A drag in progress: which card, and where its top-left corner is (in window coordinates). */
 private class Drag(val card: BCard, var topLeft: Offset)
 
-/** Where the builder's colours and wording differ between the table, the catch screen and solo. */
+/** Where the builder's colors and wording differ between the table, the catch screen and solo. */
 enum class BuilderStyle { Table, Catch }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ExpressionBuilder(
     state: BuilderState,
@@ -83,7 +71,6 @@ fun ExpressionBuilder(
     liveResult: Boolean = false,
     enabled: Boolean = true,
     style: BuilderStyle = BuilderStyle.Table,
-    cardsTitle: String = "", cardsHint: String = "", proofHint: String = "",
     /** Replaces the default Submit/Clear row. Receives submit and clear actions and whether Submit is locked. */
     actions: (@Composable (submit: () -> Unit, clear: () -> Unit, locked: Boolean) -> Unit)? = null,
 ) {
@@ -92,7 +79,7 @@ fun ExpressionBuilder(
     // A wrong submission locks the Submit button for a short penalty.
     var locked by remember { mutableStateOf(false) }
     androidx.compose.runtime.LaunchedEffect(locked) {
-        if (locked) { kotlinx.coroutines.delay(penaltyMs); locked = false }
+        if (locked) { kotlinx.coroutines.delay(penaltyMs.milliseconds); locked = false }
     }
     var origin by remember { mutableStateOf(Offset.Zero) }       // where this whole Box sits
     var trayBounds by remember { mutableStateOf(Rect.Zero) }      // the expression strip area
@@ -101,7 +88,7 @@ fun ExpressionBuilder(
     val colors = MaterialTheme.lanPlayColors
     val stripColor = if (style == BuilderStyle.Catch) colors.danger else MaterialTheme.colorScheme.primary
 
-    /** The slot under the dragged card's centre, if the card is a number and could be raised there. */
+    /** The slot under the dragged card's center, if the card is a number and could be raised there. */
     fun hoveredSlotIndex(d: Drag?): Int {
         if (d == null || d.card.kind != CardKind.Number) return -1
         val centre = d.topLeft + Offset(cardPx.width / 2, cardPx.height / 2)
@@ -140,7 +127,8 @@ fun ExpressionBuilder(
         val proof = style == BuilderStyle.Catch
         Column(verticalArrangement = Arrangement.spacedBy(if (proof) 8.dp else 6.dp)) {
             // The victim's cards, when proving a catch.
-            if (proof) CardRow(null, colors.numberLabel, state.owned(), state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin, DeckCardSize.Medium, 8.dp)
+            if (proof) CardRow(null, colors.numberLabel, state.owned(), state, drag, { drag = it }, { drop(it) }, { cardPx = it },
+                DeckCardSize.Medium, 8.dp)
 
             // The expression strip: tap or drop cards here. Scrolls sideways when it gets long.
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -211,7 +199,7 @@ fun ExpressionBuilder(
                 val owned = state.owned()
                 val numbers = owned.filter { it.kind == CardKind.Number }
                 val operators = owned.filter { it.kind == CardKind.Operator }
-                CardRow(null, colors.numberLabel, numbers + operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin)
+                CardRow(null, colors.numberLabel, numbers + operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it })
             }
 
             if (actions != null) actions(::submit, ::clear, locked || !enabled)
@@ -232,8 +220,8 @@ fun ExpressionBuilder(
 
 @Composable
 private fun CardRow(
-    label: String?, labelColor: androidx.compose.ui.graphics.Color, cards: List<BCard>, state: BuilderState,
-    drag: Drag?, setDrag: (Drag?) -> Unit, onDrop: (Drag) -> Unit, reportSize: (Size) -> Unit, origin: Offset,
+    label: String?, labelColor: Color, cards: List<BCard>, state: BuilderState,
+    drag: Drag?, setDrag: (Drag?) -> Unit, onDrop: (Drag) -> Unit, reportSize: (Size) -> Unit,
     size: DeckCardSize = DeckCardSize.Medium, gap: androidx.compose.ui.unit.Dp = 8.dp,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -243,7 +231,7 @@ private fun CardRow(
                 if (state.isUsed(card)) {
                     // Used cards stay in place but faded; tap one to take it back.
                     DeckCard(card.glyph, card.kind, altGlyph = card.alt, size = size, dimmed = true, onClick = { state.giveBack(card) })
-                } else HandCard(card, drag, state, setDrag, onDrop, reportSize, origin, size)
+                } else HandCard(card, drag, state, setDrag, onDrop, reportSize, size)
             }
         }
     }
@@ -257,7 +245,6 @@ private fun HandCard(
     setDrag: (Drag?) -> Unit,
     onDrop: (Drag) -> Unit,
     reportSize: (Size) -> Unit,
-    origin: Offset,
     size: DeckCardSize = DeckCardSize.Medium,
 ) {
     var topLeft by remember { mutableStateOf(Offset.Zero) }

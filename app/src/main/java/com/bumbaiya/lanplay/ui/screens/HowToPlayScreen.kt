@@ -1,12 +1,9 @@
 package com.bumbaiya.lanplay.ui.screens
 
-import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -23,16 +20,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.bumbaiya.lanplay.ui.components.Header
+import androidx.compose.ui.unit.sp
 import com.bumbaiya.lanplay.ui.components.CardKind
 import com.bumbaiya.lanplay.ui.components.DeckCard
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
+import com.bumbaiya.lanplay.ui.components.Header
 import com.bumbaiya.lanplay.ui.components.ScreenColumn
 import com.bumbaiya.lanplay.ui.components.SectionLabel
 import com.bumbaiya.lanplay.ui.game.BCard
 
 /** The rules of Combine Maths, with cards you can tap to see how they behave. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HowToPlayScreen(onBack: () -> Unit) {
     ScreenColumn {

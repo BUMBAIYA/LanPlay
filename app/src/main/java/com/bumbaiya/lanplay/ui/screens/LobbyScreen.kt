@@ -71,8 +71,10 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
             containerColor = MaterialTheme.colorScheme.surface, titleContentColor = MaterialTheme.colorScheme.onSurface, textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             title = { Text("Remove ${who.name}?") },
             text = { Text("They will be taken out of the room. They can only join again by entering the room ID or scanning the QR code anew.") },
-            confirmButton = { androidx.compose.material3.TextButton({ client.send(Intent.Kick(who.id)); kickId = null }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Close, tint = MaterialTheme.lanPlayColors.danger, size = 18.dp); Text("Remove", color = MaterialTheme.lanPlayColors.danger, fontWeight = FontWeight.SemiBold) } } },
-            dismissButton = { androidx.compose.material3.TextButton({ kickId = null }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Check, tint = MaterialTheme.colorScheme.onSurface, size = 18.dp); Text("Keep", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold) } } },
+            confirmButton = { androidx.compose.material3.TextButton({ client.send(Intent.Kick(who.id)); kickId = null }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(
+                DI.Close, tint = MaterialTheme.lanPlayColors.danger, size = 18.dp); Text("Remove", color = MaterialTheme.lanPlayColors.danger, fontWeight = FontWeight.SemiBold) } } },
+            dismissButton = { androidx.compose.material3.TextButton({ kickId = null }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(
+                DI.Check, tint = MaterialTheme.colorScheme.onSurface, size = 18.dp); Text("Keep", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold) } } },
         )
     }
     link?.takeIf { showQr }?.let { l ->
@@ -141,7 +143,13 @@ fun LobbyScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                             Text(p.name.take(1).uppercase(), fontWeight = FontWeight.Bold, color = Color(0xFF0E1116))
                         }
                         Text(
-                            buildAnnotatedName(p.name, when { p.id == state.adminId && p.id == me -> "Admin, You"; p.id == state.adminId -> "Admin"; p.id == me -> "You"; else -> null }),
+                            buildAnnotatedName(p.name, when (p.id) {
+                                state.adminId if p.id == me -> "Admin, You"
+                                state.adminId -> "Admin"
+                                me -> "You"
+                                else -> null
+                            }
+                            ),
                             Modifier.weight(1f), fontWeight = FontWeight.Medium,
                         )
                         val colors = MaterialTheme.lanPlayColors

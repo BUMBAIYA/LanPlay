@@ -4,6 +4,7 @@ import android.content.Context
 import com.bumbaiya.lanplay.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import androidx.core.content.edit
 
 /** The user's own preferences, kept on the phone: name, theme and sound. */
 class AppSettings(context: Context) {
@@ -19,8 +20,8 @@ class AppSettings(context: Context) {
     val sound: StateFlow<Boolean> = _sound
     val haptics: StateFlow<Boolean> = _haptics
 
-    fun setName(v: String) { _name.value = v; prefs.edit().putString("name", v).apply() }
-    fun setTheme(v: ThemeMode) { _theme.value = v; prefs.edit().putString("theme", v.name).apply() }
-    fun setSound(v: Boolean) { _sound.value = v; prefs.edit().putBoolean("sound", v).apply() }
-    fun setHaptics(v: Boolean) { _haptics.value = v; prefs.edit().putBoolean("haptics", v).apply() }
+    fun setName(v: String) { _name.value = v; prefs.edit { putString("name", v) } }
+    fun setTheme(v: ThemeMode) { _theme.value = v; prefs.edit { putString("theme", v.name) } }
+    fun setSound(v: Boolean) { _sound.value = v; prefs.edit { putBoolean("sound", v) } }
+    fun setHaptics(v: Boolean) { _haptics.value = v; prefs.edit { putBoolean("haptics", v) } }
 }

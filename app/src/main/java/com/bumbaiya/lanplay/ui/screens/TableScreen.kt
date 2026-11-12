@@ -7,26 +7,19 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
-import com.bumbaiya.lanplay.ui.components.Stage
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -53,8 +46,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,10 +65,8 @@ import com.bumbaiya.lanplay.ui.components.DI
 import com.bumbaiya.lanplay.ui.components.DIcon
 import com.bumbaiya.lanplay.ui.components.DeckCard
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
-import com.bumbaiya.lanplay.ui.components.Header
-import com.bumbaiya.lanplay.ui.components.Panel
-import com.bumbaiya.lanplay.ui.components.ScreenColumn
 import com.bumbaiya.lanplay.ui.components.SectionLabel
+import com.bumbaiya.lanplay.ui.components.Stage
 import com.bumbaiya.lanplay.ui.components.pulse
 import com.bumbaiya.lanplay.ui.game.BuilderState
 import com.bumbaiya.lanplay.ui.game.BuilderStyle
@@ -88,6 +79,7 @@ import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @Composable
@@ -103,7 +95,9 @@ private fun TableContent(client: GameClient, state: GameState, onLeave: () -> Un
     val phase = state.phase
     // The clock only changes once per second as far as the screen is concerned. Rounding down means the
     // value is identical for 4 of every 5 checks, and Compose skips redrawing when a state doesn't change.
-    val now by produceState((client.serverNow() / 1000) * 1000) { while (true) { value = (client.serverNow() / 1000) * 1000; delay(200) } }
+    val now by produceState((client.serverNow() / 1000) * 1000) { while (true) { value = (client.serverNow() / 1000) * 1000; delay(
+        200.milliseconds
+    ) } }
     var confirmLeave by remember { mutableStateOf(false) }
     var catching by remember { mutableStateOf<String?>(null) }
     var shownId by remember { mutableStateOf<String?>(null) }
@@ -128,7 +122,7 @@ private fun TableContent(client: GameClient, state: GameState, onLeave: () -> Un
         if (state.notice.contains("DHAPPA")) {
             stamp = true
             for (x in listOf(18f, -16f, 12f, -9f, 5f, 0f)) shake.animateTo(x, tween(55))
-            delay(1100); stamp = false
+            delay(1100.milliseconds); stamp = false
         }
     }
 
@@ -142,7 +136,8 @@ private fun TableContent(client: GameClient, state: GameState, onLeave: () -> Un
                 val others = state.players.filter { it.id != myId }
                 OpponentRail(state, currentId, now, myId, iAmOut, compact = others.size >= 4, onCatch = { catching = it }, onShow = { shownId = it }, modifier = Modifier.width(if (others.size >= 4) 140.dp else 200.dp))
                 Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    HeaderRow(state, phase, now, myId, startScores, sound, onLeave = { confirmLeave = true }, onSound = { Session.settings.setSound(!sound) })
+                    HeaderRow(state, phase, now, myId,
+                        sound, onLeave = { confirmLeave = true }, onSound = { Session.settings.setSound(!sound) })
                     when (phase) {
                         is Phase.DrawingTarget -> Column(Modifier.weight(1f).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)) { DrawingTargetControls(client, state, phase, myId) }
                         is Phase.Turns -> {
@@ -168,14 +163,16 @@ private fun TableContent(client: GameClient, state: GameState, onLeave: () -> Un
         containerColor = MaterialTheme.colorScheme.surface, titleContentColor = MaterialTheme.colorScheme.onSurface, textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         title = { Text("Leave the game?") },
         text = { Text(if (isAdmin) "You are the host. Leaving ends the game for everyone." else "You can rejoin using the room ID until the next round starts.") },
-        confirmButton = { TextButton(onClick = { confirmLeave = false; onLeave() }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Close, tint = MaterialTheme.lanPlayColors.danger, size = 18.dp); Text("Leave", color = MaterialTheme.lanPlayColors.danger, fontWeight = FontWeight.SemiBold) } } },
-        dismissButton = { TextButton(onClick = { confirmLeave = false }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Check, tint = MaterialTheme.colorScheme.onSurface, size = 18.dp); Text("Stay", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold) } } },
+        confirmButton = { TextButton(onClick = { confirmLeave = false; onLeave() }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { DIcon(
+            DI.Close, tint = MaterialTheme.lanPlayColors.danger, size = 18.dp); Text("Leave", color = MaterialTheme.lanPlayColors.danger, fontWeight = FontWeight.SemiBold) } } },
+        dismissButton = { TextButton(onClick = { confirmLeave = false }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { DIcon(
+            DI.Check, tint = MaterialTheme.colorScheme.onSurface, size = 18.dp); Text("Stay", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold) } } },
     )
 }
 
 private val AvatarColors = listOf(Color(0xFF5BA3E6), Color(0xFFE0735F), Color(0xFF6FBF8A), Color(0xFFD9A441), Color(0xFF9B87D6), Color(0xFF58B7C4))
 
-/** A round avatar showing the player's initial on a muted colour, stable per seat. */
+/** A round avatar showing the player's initial on a muted color, stable per seat. */
 @Composable
 private fun Avatar(index: Int, name: String, size: Dp, ring: Boolean = false) {
     val i = index.coerceAtLeast(0) % AvatarColors.size
@@ -210,7 +207,6 @@ private fun CardsDialog(name: String, cards: List<com.bumbaiya.lanplay.ui.game.B
         Surface(shape = RoundedCornerShape(24.dp), color = Color(0xFF171C24), border = BorderStroke(3.dp, Color.White), modifier = Modifier.clickable(onClick = onClose)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("$name's cards" + if (out) " (out)" else "", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     cards.forEach { c -> DeckCard(c.glyph, c.kind, altGlyph = c.alt, size = DeckCardSize.Large, dimmed = out) }
                 }
@@ -223,7 +219,8 @@ private fun CardsDialog(name: String, cards: List<com.bumbaiya.lanplay.ui.game.B
 // ---------- header: scores, target and timer in one row ----------
 
 @Composable
-private fun HeaderRow(state: GameState, phase: Phase, now: Long, myId: String, startScores: Map<String, Int>, sound: Boolean, onLeave: () -> Unit, onSound: () -> Unit) {
+private fun HeaderRow(state: GameState, phase: Phase, now: Long, myId: String,
+                      sound: Boolean, onLeave: () -> Unit, onSound: () -> Unit) {
     val shown = (phase as? Phase.DrawingTarget)?.digits ?: state.target
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(40.dp).clickable(onClick = onLeave), contentAlignment = Alignment.Center) { DIcon(DI.Back) }
@@ -346,7 +343,6 @@ private fun OpponentRail(
                         }
                     }
                     if (!compact) {
-                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
                         androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             cards.take(4).forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, size = DeckCardSize.Small, dimmed = out) }
                             if (cards.size > 4) Text("+${cards.size - 4}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB6F24A), modifier = Modifier.align(Alignment.CenterVertically).padding(horizontal = 4.dp))
@@ -374,7 +370,7 @@ private fun MyTurn(client: GameClient, state: GameState, phase: Phase.Turns, myI
     if (myTurn) LaunchedEffect(builder) {
         snapshotFlow { builder.slots.map { RowSlot(it.card.glyph, it.exp?.glyph) } }
             .distinctUntilChanged()
-            .collectLatest { row -> delay(120); client.send(Intent.Preview(row)) }
+            .collectLatest { row -> delay(120.milliseconds); client.send(Intent.Preview(row)) }
     }
     ExpressionBuilder(
         state = builder, engineHand = { builder.allCards().toEngineHand() }, target = state.targetValue ?: 0,

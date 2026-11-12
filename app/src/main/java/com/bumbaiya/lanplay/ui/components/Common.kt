@@ -13,18 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 
 /**
  * The frame every screen sits in. On a phone it fills the width; on a tablet or a phone turned
@@ -52,12 +48,6 @@ fun SectionLabel(text: String) = Text(
     fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, letterSpacing = 1.sp,
     color = MaterialTheme.colorScheme.onSurfaceVariant,
 )
-
-@Composable
-fun BackLink(onClick: () -> Unit, label: String = "Back") = TextButton(
-    onClick = onClick,
-    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.lanPlayColors.accentText),
-) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { DIcon(DI.Back, tint = MaterialTheme.lanPlayColors.accentText, size = 20.dp); Text(label) } }
 
 /** A label on the left and its control on the right. Every setting in the app uses this. */
 @Composable

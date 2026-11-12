@@ -7,8 +7,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,7 +16,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -28,7 +25,7 @@ private class Bit(val x: Float, val delay: Float, val speed: Float, val sway: Fl
 
 /** A one-off burst of falling confetti for round wins. Redraws only the canvas, never recomposes. */
 @Composable
-fun Confetti(modifier: Modifier = Modifier.fillMaxWidth().height(160.dp)) {
+fun Confetti(modifier: Modifier = Modifier) {
     val bits = remember { List(48) { Bit(Random.nextFloat(), Random.nextFloat() * 0.35f, 0.7f + Random.nextFloat() * 0.5f, Random.nextFloat() * 6f, 6f + Random.nextFloat() * 8f, ConfettiColors.random()) } }
     val t = remember { Animatable(0f) }
     LaunchedEffect(Unit) { t.animateTo(1f, tween(2200, easing = LinearEasing)) }

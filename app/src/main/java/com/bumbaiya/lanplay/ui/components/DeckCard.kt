@@ -3,7 +3,6 @@ package com.bumbaiya.lanplay.ui.components
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -54,7 +53,6 @@ private val FaceTop = Color(0xFFFFFFFF)
 private val FaceBottom = Color(0xFFE8EDF5)
 private val CardEdge = Color(0xFFB4BDCB)
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DeckCard(
     glyph: String,
@@ -123,16 +121,3 @@ fun DeckCard(
     }
 }
 
-/** A face-down card: the deck. */
-@Composable
-fun CardBack(modifier: Modifier = Modifier, size: DeckCardSize = DeckCardSize.Medium) {
-    val radius = if (size == DeckCardSize.Small) 6.dp else 10.dp
-    Box(
-        modifier.size(size.width, size.height).drawBehind {
-            val r = CornerRadius(radius.toPx())
-            drawRoundRect(Color(0xFF1B2230), cornerRadius = r)
-            drawRoundRect(Color(0xFFB6F24A), cornerRadius = r, style = Stroke(1.5.dp.toPx()))
-        },
-        contentAlignment = Alignment.Center,
-    ) { Text("L", color = Color(0xFFB6F24A), fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = size.glyph) }
-}

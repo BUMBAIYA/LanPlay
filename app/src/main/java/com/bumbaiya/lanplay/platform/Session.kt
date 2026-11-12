@@ -1,5 +1,6 @@
 package com.bumbaiya.lanplay.platform
 
+import android.app.Application
 import android.content.Context
 import com.bumbaiya.lanplay.net.GameClient
 import com.bumbaiya.lanplay.net.HostServer
@@ -18,7 +19,7 @@ import kotlinx.coroutines.withContext
  * these functions. It lives for as long as the app process does.
  */
 object Session {
-    private lateinit var app: Context
+    private lateinit var app: Application
     lateinit var settings: AppSettings
         private set
     lateinit var discovery: RoomDiscovery
@@ -39,7 +40,7 @@ object Session {
 
     fun init(context: Context) {
         if (::app.isInitialized) return
-        app = context.applicationContext
+        app = context.applicationContext as Application
         settings = AppSettings(app)
         discovery = RoomDiscovery(app)
     }

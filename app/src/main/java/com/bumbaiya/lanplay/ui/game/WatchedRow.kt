@@ -1,14 +1,12 @@
 package com.bumbaiya.lanplay.ui.game
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -25,9 +23,9 @@ import com.bumbaiya.lanplay.game.combinemaths.RowSlot
 import com.bumbaiya.lanplay.ui.components.CardKind
 import com.bumbaiya.lanplay.ui.components.DeckCard
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
+import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 
 /** Watching another player work: their row appears card by card as they place it. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WatchedRow(row: List<RowSlot>, name: String) {
     Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
