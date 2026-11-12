@@ -59,6 +59,7 @@ private const val ROUND_SECONDS = 60
  */
 @Composable
 fun SoloScreen(onBack: () -> Unit) {
+    com.bumbaiya.lanplay.ui.components.LockLandscape()
     val pool = remember { CardPool() }
     var phase by remember { mutableStateOf(SoloPhase.Setup) }
     var score by remember { mutableIntStateOf(0) }

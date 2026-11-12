@@ -8,6 +8,13 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
+import com.bumbaiya.lanplay.ui.components.LockLandscape
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.horizontalScroll
@@ -85,6 +92,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
+    LockLandscape()
+    // The table is always dark and colourful, whatever theme the rest of the app uses.
+    com.bumbaiya.lanplay.ui.theme.LanPlayTheme(com.bumbaiya.lanplay.ui.theme.ThemeMode.Dark) { TableContent(client, state, onLeave) }
+}
+
+@Composable
+private fun TableContent(client: GameClient, state: GameState, onLeave: () -> Unit) {
     val me by client.myId.collectAsState()
     val myId = me ?: return
     val phase = state.phase
@@ -93,6 +107,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     val now by produceState((client.serverNow() / 1000) * 1000) { while (true) { value = (client.serverNow() / 1000) * 1000; delay(200) } }
     var confirmLeave by remember { mutableStateOf(false) }
     var catching by remember { mutableStateOf<String?>(null) }
+    var shownId by remember { mutableStateOf<String?>(null) }
     val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
     val isAdmin = myId == state.adminId
     val iAmOut = state.hands[myId]?.out == true
@@ -107,24 +122,46 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     // Scores at the start of the round, so the result screen can show "+3".
     val startScores = remember(state.round) { state.players.associate { it.id to it.score } }
 
+    // A catch makes the whole table shake and slams a DHAPPA stamp onto the screen.
+    val shake = remember { androidx.compose.animation.core.Animatable(0f) }
+    var stamp by remember { mutableStateOf(false) }
+    LaunchedEffect(state.seq) {
+        if (state.notice.contains("DHAPPA")) {
+            stamp = true
+            for (x in listOf(18f, -16f, 12f, -9f, 5f, 0f)) shake.animateTo(x, tween(55))
+            delay(1100); stamp = false
+        }
+    }
+
     val victim = catching?.let { state.player(it) }
-    when {
-        phase is Phase.RoundEnd || phase is Phase.Finished ->
-            ScoresView(client, state, myId, isAdmin, startScores, onLeave = { confirmLeave = true })
-        victim != null && phase is Phase.Turns -> CatchView(client, state, victim.id, victim.name, now) { catching = null }
-        else -> ScreenColumn(gap = 14.dp) {
-            TopBar(state, myId, startScores, sound, onLeave = { confirmLeave = true }, onSound = { Session.settings.setSound(!sound) })
-            TargetPanel(state, phase, now, myId)
-            when (phase) {
-                is Phase.DrawingTarget -> DrawingTargetControls(client, state, phase, myId)
-                is Phase.Turns -> {
-                    Opponents(state, phase, now, myId, iAmOut) { catching = it }
-                    if (iAmOut) Text("You are out of this round. Watch for chances to catch!", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    else MyTurn(client, state, phase, myId)
+    Arena(Modifier.graphicsLayer { translationX = shake.value }) {
+        when {
+            phase is Phase.RoundEnd || phase is Phase.Finished ->
+                ScoresView(client, state, myId, isAdmin, startScores, onLeave = { confirmLeave = true })
+            victim != null && phase is Phase.Turns -> CatchView(client, state, victim.id, victim.name, now) { catching = null }
+            else -> Row(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                val others = state.players.filter { it.id != myId }
+                OpponentRail(state, currentId, now, myId, iAmOut, compact = others.size >= 4, onCatch = { catching = it }, onShow = { shownId = it }, modifier = Modifier.width(if (others.size >= 4) 150.dp else 230.dp))
+                Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    HeaderRow(state, phase, now, myId, startScores, sound, onLeave = { confirmLeave = true }, onSound = { Session.settings.setSound(!sound) })
+                    when (phase) {
+                        is Phase.DrawingTarget -> DrawingTargetControls(client, state, phase, myId)
+                        is Phase.Turns -> {
+                            if (phase.currentId != myId) WatchedRow(state.liveRow, state.player(phase.currentId)?.name ?: "Player")
+                            if (iAmOut) Text("You are out of this round. Watch for chances to catch!", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            else MyTurn(client, state, phase, myId)
+                        }
+                        else -> Unit
+                    }
                 }
-                else -> Unit
             }
         }
+        if (stamp) DhappaStamp()
+    }
+
+    shownId?.let { id ->
+        val p = state.player(id)
+        if (p != null) CardsDialog(p.name, state.hands[id]?.hand.orEmpty().map { it.toBCard() }, out = state.hands[id]?.out == true) { shownId = null }
     }
 
     if (confirmLeave) AlertDialog(
@@ -135,6 +172,65 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
         confirmButton = { TextButton(onClick = { confirmLeave = false; onLeave() }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Close, tint = MaterialTheme.lanPlayColors.danger, size = 18.dp); Text("Leave", color = MaterialTheme.lanPlayColors.danger, fontWeight = FontWeight.SemiBold) } } },
         dismissButton = { TextButton(onClick = { confirmLeave = false }) { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { com.bumbaiya.lanplay.ui.components.DIcon(com.bumbaiya.lanplay.ui.components.DI.Check, tint = MaterialTheme.colorScheme.onSurface, size = 18.dp); Text("Stay", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold) } } },
     )
+}
+
+/** The colourful dark play area every table screen sits on. */
+@Composable
+private fun Arena(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Box(
+        modifier.fillMaxSize()
+            .background(Brush.radialGradient(listOf(Color(0xFF3B2A8C), Color(0xFF1A1450), Color(0xFF0D0A2C)), center = Offset(900f, 500f), radius = 1600f))
+            .drawBehind {
+                drawCircle(Color(0xFFFF5C7A).copy(alpha = 0.14f), size.minDimension * 0.55f, Offset(0f, size.height * 0.85f))
+                drawCircle(Color(0xFF4DA3FF).copy(alpha = 0.14f), size.minDimension * 0.5f, Offset(size.width, 0f))
+                drawCircle(Color(0xFFB4F24D).copy(alpha = 0.10f), size.minDimension * 0.35f, Offset(size.width * 0.7f, size.height))
+            },
+    ) { androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides Color.White) { content() } }
+}
+
+private val Animals = listOf("\uD83E\uDD8A", "\uD83D\uDC3C", "\uD83D\uDC38", "\uD83E\uDD81", "\uD83D\uDC19", "\uD83D\uDC2F", "\uD83D\uDC35", "\uD83E\uDD84")
+private val AvatarColors = listOf(Color(0xFFFF7A7A), Color(0xFF4DE3B0), Color(0xFF7A8BFF), Color(0xFFFFB04A), Color(0xFFC58BFF), Color(0xFF5FD3FF), Color(0xFFFF8BD1), Color(0xFFA6EE5C))
+
+/** A round avatar: an animal on a bright background, stable per seat. */
+@Composable
+private fun Avatar(index: Int, size: Dp, ring: Boolean = false) {
+    val i = index.coerceAtLeast(0) % Animals.size
+    Box(
+        Modifier.size(size).background(AvatarColors[i], androidx.compose.foundation.shape.CircleShape)
+            .border(if (ring) 3.dp else 2.dp, if (ring) Color(0xFFB6F24A) else Color.White, androidx.compose.foundation.shape.CircleShape),
+        contentAlignment = Alignment.Center,
+    ) { Text(Animals[i], fontSize = (size.value * 0.5f).sp) }
+}
+
+/** The big red DHAPPA stamp that slams onto the screen when someone is caught. */
+@Composable
+private fun DhappaStamp() {
+    val scale = remember { androidx.compose.animation.core.Animatable(3.2f) }
+    LaunchedEffect(Unit) { scale.animateTo(1f, androidx.compose.animation.core.spring(dampingRatio = 0.45f, stiffness = 500f)) }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            "DHAPPA!", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Black, fontSize = 72.sp, color = Color(0xFFFF5C7A),
+            style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(Color(0xFF7A1230), Offset(0f, 10f), 0f)),
+            modifier = Modifier.graphicsLayer { scaleX = scale.value; scaleY = scale.value; rotationZ = -8f; alpha = (4f - scale.value).coerceIn(0f, 1f) },
+        )
+    }
+}
+
+/** Everything one player is holding, full size. */
+@Composable
+private fun CardsDialog(name: String, cards: List<com.bumbaiya.lanplay.ui.game.BCard>, out: Boolean, onClose: () -> Unit) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
+        Surface(shape = RoundedCornerShape(24.dp), color = Color(0xFF1A1450), border = BorderStroke(3.dp, Color.White), modifier = Modifier.clickable(onClick = onClose)) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("$name's cards" + if (out) " (out)" else "", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    cards.forEach { c -> DeckCard(c.glyph, c.kind, altGlyph = c.alt, size = DeckCardSize.Large, dimmed = out) }
+                }
+                Text("Tap anywhere to close", fontSize = 12.sp, color = Color(0xFF9AA3B2))
+            }
+        }
+    }
 }
 
 // ---------- top bar ----------
@@ -159,6 +255,49 @@ private fun TopBar(state: GameState, myId: String, startScores: Map<String, Int>
     }
 }
 
+// ---------- header: scores, target and timer in one row ----------
+
+@Composable
+private fun HeaderRow(state: GameState, phase: Phase, now: Long, myId: String, startScores: Map<String, Int>, sound: Boolean, onLeave: () -> Unit, onSound: () -> Unit) {
+    val shown = (phase as? Phase.DrawingTarget)?.digits ?: state.target
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Box(Modifier.size(40.dp).clickable(onClick = onLeave), contentAlignment = Alignment.Center) { DIcon(DI.Back) }
+        Column(Modifier.weight(1f)) {
+            Text("Round ${state.round} · to ${state.settings.winScore}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                state.players.forEach { p ->
+                    val score by animateIntAsState(p.score, tween(700), label = "score")
+                    Text(
+                        "${if (p.id == myId) "You" else p.name} $score", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 15.sp,
+                        color = if (p.id == myId) Color(0xFFB6F24A) else Color.White, maxLines = 1,
+                    )
+                }
+            }
+        }
+        // target
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("TARGET", fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp, color = Color(0xFFB6F24A))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.heightIn(min = 76.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (shown.isEmpty()) Text("?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f))
+                shown.forEachIndexed { i, d -> androidx.compose.runtime.key(i) { FlipIn { DeckCard(d.toString(), CardKind.Number, size = DeckCardSize.Target) } } }
+            }
+        }
+        if (phase is Phase.Turns) {
+            val myTurn = phase.currentId == myId
+            val total = state.settings.turnSeconds.coerceAtLeast(1)
+            val secs = ((phase.turnEndsAt - now) / 1000 + 1).toInt().coerceIn(0, total)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                TimerRing(secs, total, if (myTurn) Color(0xFFB6F24A) else Color(0xFF9AA3B2), 52.dp)
+                Text(
+                    if (myTurn) "YOUR TURN" else (state.player(phase.currentId)?.name ?: "") + "'s turn", fontSize = 11.sp, fontWeight = FontWeight.Black,
+                    color = if (myTurn) Color(0xFFB6F24A) else Color(0xFF9AA3B2), modifier = if (myTurn) Modifier.pulse() else Modifier, maxLines = 1,
+                )
+            }
+        }
+        Box(Modifier.size(40.dp).clickable(onClick = onSound), contentAlignment = Alignment.Center) { DIcon(if (sound) DI.Speaker else DI.SpeakerOff) }
+    }
+}
+
 // ---------- target + timer ----------
 
 @Composable
@@ -170,7 +309,7 @@ private fun TargetPanel(state: GameState, phase: Phase, now: Long, myId: String)
                 SectionLabel("Target")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (shown.isEmpty()) Text("Not drawn yet", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    shown.forEach { DeckCard(it.toString(), CardKind.Number, size = DeckCardSize.Target) }
+                    shown.forEachIndexed { i, d -> androidx.compose.runtime.key(i) { FlipIn { DeckCard(d.toString(), CardKind.Number, size = DeckCardSize.Target) } } }
                 }
             }
             if (phase is Phase.Turns) {
@@ -207,6 +346,14 @@ private fun TimerRing(secs: Int, total: Int, color: Color, size: Dp) {
     }
 }
 
+/** Flips its content over from edge-on, like a card being turned face-up. */
+@Composable
+private fun FlipIn(content: @Composable () -> Unit) {
+    val t = remember { androidx.compose.animation.core.Animatable(90f) }
+    LaunchedEffect(Unit) { t.animateTo(0f, androidx.compose.animation.core.spring(dampingRatio = 0.55f, stiffness = 260f)) }
+    Box(Modifier.graphicsLayer { rotationY = t.value; cameraDistance = 14f * density }) { content() }
+}
+
 // ---------- drawing the target ----------
 
 @Composable
@@ -221,48 +368,55 @@ private fun DrawingTargetControls(client: GameClient, state: GameState, phase: P
 
 // ---------- other players ----------
 
+/**
+ * The other players down the left edge. With up to 3 opponents each shows its cards inline; with 4 or more
+ * they shrink to avatar bubbles with a card count. Tap anyone to see all their cards at full size.
+ */
 @Composable
-private fun Opponents(state: GameState, phase: Phase.Turns, now: Long, myId: String, iAmOut: Boolean, onCatch: (String) -> Unit) {
-    var expandedId by remember { mutableStateOf<String?>(null) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        state.players.filter { it.id != myId }.forEach { p ->
+private fun OpponentRail(
+    state: GameState, currentId: String?, now: Long, myId: String, iAmOut: Boolean, compact: Boolean,
+    onCatch: (String) -> Unit, onShow: (String) -> Unit, modifier: Modifier = Modifier,
+) {
+    Column(modifier.fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        state.players.forEachIndexed { index, p ->
+            if (p.id == myId) return@forEachIndexed
             val rp = state.hands[p.id]
-            val turn = phase.currentId == p.id
+            val turn = currentId == p.id
             val window = state.catchWindows.firstOrNull { it.playerId == p.id && it.closesAt >= now }
             val out = rp?.out == true
-            Column {
-                Surface(
-                    shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(if (turn) 2.dp else 1.dp, if (turn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
-                ) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(p.name, fontSize = 14.sp, fontWeight = FontWeight.Medium, modifier = Modifier.width(46.dp), maxLines = 1, color = if (out || !p.connected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
-                        val cards = rp?.hand.orEmpty()
-                        val open = expandedId == p.id
-                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-                        androidx.compose.foundation.layout.FlowRow(
-                            Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp),
-                            itemVerticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            (if (open) cards else cards.take(5)).forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, size = DeckCardSize.Small, dimmed = out) }
-                            if (cards.size > 5) Text(
-                                if (open) "Show less" else "+${cards.size - 5} more", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.lanPlayColors.accentText,
-                                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { expandedId = if (open) null else p.id }.padding(horizontal = 6.dp, vertical = 8.dp),
+            val cards = rp?.hand.orEmpty()
+            Surface(
+                onClick = { onShow(p.id) }, shape = RoundedCornerShape(16.dp), color = Color.White.copy(alpha = 0.10f),
+                border = BorderStroke(if (turn) 3.dp else 1.5.dp, if (turn) Color(0xFFB6F24A) else Color.White.copy(alpha = 0.25f)),
+            ) {
+                Column(Modifier.fillMaxWidth().padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Box {
+                            Avatar(index, if (compact) 40.dp else 36.dp, ring = turn)
+                            Text(
+                                "${cards.size}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF10131C),
+                                modifier = Modifier.align(Alignment.BottomEnd).offset(x = 6.dp, y = 4.dp).background(Color.White, androidx.compose.foundation.shape.CircleShape).padding(horizontal = 5.dp, vertical = 1.dp),
                             )
                         }
-                        when {
-                            window != null && !iAmOut -> Surface(
-                                onClick = { onCatch(p.id) }, shape = RoundedCornerShape(10.dp), color = MaterialTheme.lanPlayColors.dangerContainer,
-                                modifier = Modifier.size(52.dp, 44.dp),
-                            ) { Box(contentAlignment = Alignment.Center) { Text("Catch", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.lanPlayColors.onDangerContainer) } }
-                            !p.connected -> Text("Offline", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            out -> Text("Out", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            turn -> Text("Playing", fontSize = 12.sp, color = MaterialTheme.lanPlayColors.accentText, modifier = Modifier.pulse())
-                            else -> Text("Waiting", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Column(Modifier.weight(1f)) {
+                            Text(p.name, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, color = if (out || !p.connected) Color(0xFF9AA3B2) else Color.White)
+                            Text(
+                                when { !p.connected -> "Offline"; out -> "Out"; turn -> "Playing"; else -> "${p.score} pts" },
+                                fontSize = 12.sp, color = if (turn) Color(0xFFB6F24A) else Color(0xFF9AA3B2), modifier = if (turn) Modifier.pulse() else Modifier,
+                            )
+                        }
+                        if (window != null && !iAmOut) Surface(onClick = { onCatch(p.id) }, shape = RoundedCornerShape(10.dp), color = Color(0xFFFF5C7A), border = BorderStroke(2.dp, Color.White)) {
+                            Text("DHAPPA?", fontSize = 11.sp, fontWeight = FontWeight.Black, color = Color.White, modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp))
+                        }
+                    }
+                    if (!compact) {
+                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            cards.take(5).forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, size = DeckCardSize.Small, dimmed = out) }
+                            if (cards.size > 5) Text("+${cards.size - 5}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB6F24A), modifier = Modifier.align(Alignment.CenterVertically).padding(horizontal = 4.dp))
                         }
                     }
                 }
-                if (turn) Box(Modifier.padding(start = 10.dp, top = 6.dp)) { WatchedRow(state.liveRow, p.name) }
             }
         }
     }
@@ -292,14 +446,12 @@ private fun MyTurn(client: GameClient, state: GameState, phase: Phase.Turns, myI
         penaltyMs = state.settings.penaltySeconds * 1000L, liveResult = state.settings.showLiveResult,
         enabled = myTurn,
         actions = { submit, _, locked ->
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     DrawButton("Draw number", MaterialTheme.lanPlayColors.numberLabel, !phase.hasDrawn && myTurn, Modifier.weight(1f)) { client.send(Intent.DrawCard(number = true)); Feedback.draw() }
                     DrawButton("Draw operator", MaterialTheme.lanPlayColors.operatorLabel, !phase.hasDrawn && myTurn, Modifier.weight(1f)) { client.send(Intent.DrawCard(number = false)); Feedback.draw() }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    BigButton("Pass", { client.send(Intent.Pass) }, Modifier.weight(1f), icon = DI.Pass, primary = false, enabled = myTurn && phase.hasDrawn, height = 52.dp)
-                    BigButton(if (locked && myTurn) "Wait..." else "Submit answer", submit, Modifier.weight(2f), icon = DI.Check, enabled = myTurn && !locked, height = 52.dp)
+                    BigButton("Pass", { client.send(Intent.Pass) }, Modifier.weight(0.7f), icon = DI.Pass, primary = false, enabled = myTurn && phase.hasDrawn, height = 48.dp, fontSize = 15)
+                    BigButton(if (locked && myTurn) "Wait..." else "Submit", submit, Modifier.weight(1.2f), icon = DI.Check, enabled = myTurn && !locked, height = 48.dp, fontSize = 16)
                 }
                 if (myTurn && !phase.hasDrawn) Text("Draw a card to be allowed to pass.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

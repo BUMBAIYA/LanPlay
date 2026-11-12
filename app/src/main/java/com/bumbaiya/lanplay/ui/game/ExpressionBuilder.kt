@@ -136,7 +136,7 @@ fun ExpressionBuilder(
     }
 
     Box(modifier.onGloballyPositioned { origin = it.positionInRoot() }) {
-        Column(verticalArrangement = Arrangement.spacedBy(if (style == BuilderStyle.Catch) 20.dp else 12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(if (style == BuilderStyle.Catch) 20.dp else 6.dp)) {
             if (style == BuilderStyle.Catch) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 SectionLabel(cardsTitle)
                 CardRow(null, colors.numberLabel, state.owned(), state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin, DeckCardSize.Large, 10.dp)
@@ -145,7 +145,7 @@ fun ExpressionBuilder(
             Column(verticalArrangement = Arrangement.spacedBy(if (style == BuilderStyle.Catch) 10.dp else 6.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                     SectionLabel(if (style == BuilderStyle.Catch) "Your proof" else "Your expression")
-                    if (style == BuilderStyle.Table) androidx.compose.material3.TextButton(onClick = ::clear, modifier = Modifier.heightIn(min = 44.dp)) {
+                    if (style == BuilderStyle.Table) androidx.compose.material3.TextButton(onClick = ::clear, modifier = Modifier.heightIn(min = 28.dp)) {
                         Text("Clear", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -153,7 +153,7 @@ fun ExpressionBuilder(
                 val proof = style == BuilderStyle.Catch
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth().heightIn(min = if (proof) 96.dp else 76.dp)
+                        .fillMaxWidth().heightIn(min = if (proof) 96.dp else 70.dp)
                         .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp))
                         .border(2.dp, stripColor, RoundedCornerShape(14.dp))
                         .onGloballyPositioned { trayBounds = it.boundsInRoot() }
@@ -188,16 +188,12 @@ fun ExpressionBuilder(
                     }
                     // The empty dashed slot at the end: where the next card goes.
                     val dash = MaterialTheme.lanPlayColors.cardBorder
-                    Box(Modifier.padding(top = 12.dp).size(if (proof) 48.dp else 40.dp, if (proof) 62.dp else 54.dp).drawBehind {
+                    Box(Modifier.padding(top = 12.dp).size(if (proof) 52.dp else 44.dp, if (proof) 70.dp else 60.dp).drawBehind {
                         drawRoundRect(dash, cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(), pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))))
                     })
                 }
                 val owned = state.owned()
                 val used = owned.count { state.isUsed(it) }
-                if (style == BuilderStyle.Table) Text(
-                    "$used cards used, ${owned.size - used} unused. Using every card is optional.",
-                    fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
                 if (liveResult) {
                     // The admin turned on the live result: always show a clear box so players can see it is on.
                     val r = if (state.slots.isEmpty()) null else ExpressionEvaluator.evaluate(state.expression(), engineHand())
@@ -223,9 +219,7 @@ fun ExpressionBuilder(
                 val numbers = owned.filter { it.kind == CardKind.Number }
                 val operators = owned.filter { it.kind == CardKind.Operator }
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SectionLabel("Your cards · ${owned.size}")
-                    CardRow("Numbers · ${numbers.size}", colors.numberLabel, numbers, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin)
-                    CardRow("Operators · ${operators.size}", colors.operatorLabel, operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin)
+                    CardRow(null, colors.numberLabel, numbers + operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, origin)
                 }
             }
 
@@ -253,7 +247,7 @@ private fun CardRow(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (label != null) Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = labelColor)
-        Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).heightIn(min = 66.dp), horizontalArrangement = Arrangement.spacedBy(gap)) {
+        Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).heightIn(min = 74.dp), horizontalArrangement = Arrangement.spacedBy(gap)) {
             cards.forEach { card ->
                 if (state.isUsed(card)) {
                     // Used cards stay in place but faded; tap one to take it back.
