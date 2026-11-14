@@ -72,6 +72,11 @@ object DI {
     val Book = icon("book", 2.25f, "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z", "M4 19V5M9 8h6")
     val Tour = icon("tour", 2.25f, "M7 5l12 7-12 7z", circle(12f, 12f, 10f))
     /** The LanPlay mark: radio waves, on a 32 grid. */
+    val Trophy = icon("trophy", 2.25f, "M8 4h8v5a4 4 0 0 1-8 0z", "M8 5H4v2a3 3 0 0 0 4 3M16 5h4v2a3 3 0 0 1-4 3M12 13v4M8 20h8")
+    val Heart = icon("heart", 2.25f, "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10z")
+    val Eye = icon("eye", 2.25f, "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z", circle(12f, 12f, 3f))
+    val Minus = icon("minus", 3f, "M6 12h12")
+    val Plus = icon("plus", 3f, "M6 12h12M12 6v12")
     val Logo = icon("logo", 2.5f, "M5 12a16 16 0 0 1 22 0", "M9 17a10 10 0 0 1 14 0", circle(16f, 23f, 2f), size = 32f)
 }
 
@@ -79,103 +84,3 @@ object DI {
 fun DIcon(icon: ImageVector, modifier: Modifier = Modifier, tint: Color = MaterialTheme.colorScheme.onBackground, size: Dp = 24.dp) =
     Icon(icon, null, modifier.size(size), tint = tint)
 
-// ---------- building blocks ----------
-
-/** The title row on every inner screen: a 44dp back arrow, then the heading. */
-@Composable
-fun Header(title: String, onBack: () -> Unit, caption: String? = null) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(
-            Modifier.offset(x = (-10).dp).size(44.dp).clickable(onClick = onBack), contentAlignment = Alignment.Center,
-        ) { DIcon(DI.Back) }
-        if (caption != null) Text(caption, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        else Text(title, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 26.sp)
-    }
-}
-
-/** A bordered surface used for rows, panels and cards. */
-@Composable
-fun Panel(modifier: Modifier = Modifier, borderColor: Color = MaterialTheme.colorScheme.outline, borderWidth: Dp = 1.dp, radius: Dp = 14.dp, content: @Composable ColumnScope.() -> Unit) =
-    Surface(
-        modifier.fillMaxWidth(), shape = RoundedCornerShape(radius), color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(borderWidth, borderColor),
-    ) { Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), content = content) }
-
-/** Full-width button: the lime one is primary, the bordered one is secondary. 56dp tall, 16dp corners. */
-@Composable
-fun BigButton(
-    text: String, onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVector? = null,
-    primary: Boolean = true, enabled: Boolean = true, height: Dp = 56.dp, fontSize: Int = 18,
-    container: Color? = null, content: Color? = null,
-) {
-    val colors = MaterialTheme.lanPlayColors
-    val bg = container?.takeIf { enabled } ?: when { !enabled -> colors.disabledContainer; primary -> MaterialTheme.colorScheme.primary; else -> Color.Transparent }
-    val fg = content?.takeIf { enabled } ?: when { !enabled -> colors.onDisabledContainer; primary -> MaterialTheme.colorScheme.onPrimary; else -> MaterialTheme.colorScheme.onBackground }
-    Surface(
-        onClick = onClick, enabled = enabled, modifier = modifier.fillMaxWidth().heightIn(min = height), shape = RoundedCornerShape(16.dp),
-        color = bg, contentColor = fg, border = if (primary || !enabled || container != null) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Row(Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            if (icon != null) { DIcon(icon, tint = fg, size = 22.dp); androidx.compose.foundation.layout.Spacer(Modifier.size(10.dp)) }
-            Text(text, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = fontSize.sp, maxLines = 1, softWrap = false)
-        }
-    }
-}
-
-/** The big tappable rows on the game menu: icon, title, subtitle, arrow. */
-@Composable
-fun MenuTile(title: String, subtitle: String, icon: ImageVector, onClick: () -> Unit, primary: Boolean = false) {
-    val fg = if (primary) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
-    val sub = if (primary) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-    Surface(
-        onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp), shape = RoundedCornerShape(16.dp),
-        color = if (primary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-        border = if (primary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Row(Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-            DIcon(icon, tint = fg, size = 28.dp)
-            Column(Modifier.weight(1f).padding(start = 14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = fg)
-                Text(subtitle, fontSize = 14.sp, color = sub, fontWeight = if (primary) FontWeight.Medium else FontWeight.Normal)
-            }
-            DIcon(DI.Right, tint = fg)
-        }
-    }
-}
-
-/** A setting row with an optional description and a checkbox on the right. */
-@Composable
-fun ToggleRow(title: String, description: String?, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) =
-    Panel(Modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, fontWeight = FontWeight.Medium)
-                if (description != null) Text(description, fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            androidx.compose.material3.Checkbox(
-                checked = checked, onCheckedChange = onChange, enabled = enabled,
-                modifier = Modifier.padding(start = 10.dp).size(40.dp),
-            )
-        }
-    }
-
-/** The design's text field: 52dp tall, 12dp corners, surface fill, 1dp border. */
-@Composable
-fun TextBox(value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier, placeholder: String? = null, height: Dp = 52.dp, keyboardOptions: androidx.compose.foundation.text.KeyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default, keyboardActions: androidx.compose.foundation.text.KeyboardActions = androidx.compose.foundation.text.KeyboardActions.Default) {
-    androidx.compose.foundation.text.BasicTextField(
-        value = value, onValueChange = onChange, singleLine = true, keyboardOptions = keyboardOptions, keyboardActions = keyboardActions,
-        textStyle = androidx.compose.ui.text.TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, fontFamily = com.bumbaiya.lanplay.ui.theme.Inter),
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        modifier = modifier.fillMaxWidth(),
-        decorationBox = { inner ->
-            Box(
-                Modifier.fillMaxWidth().heightIn(min = height).background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp)).padding(horizontal = 14.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                if (value.isEmpty() && placeholder != null) Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
-                inner()
-            }
-        },
-    )
-}

@@ -3,22 +3,33 @@ package com.bumbaiya.lanplay.ui.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
-/** Brand lime. Used for filled buttons and highlights, always with dark text on top. */
-val Lime = Color(0xFFB6F24A)
-
 /**
- * Colors that Material3's ColorScheme has no slot for. Values come from the LanPlay design
- * (dark and light boards). Read them with [MaterialTheme.lanPlayColors].
+ * The LanPlay palette (from the Tandem design). Everything is flat: a fill, a 2-2.5dp [Ink] outline and a
+ * hard [Ink] shadow. There are no gradients and no transparent buttons.
  */
+val Ink = Color(0xFF241C18)
+val Cream = Color(0xFFF6EEE0)
+val PanelBg = Color(0xFFFDF7EC)
+val Sand = Color(0xFFF4E4CB)
+val Sand2 = Color(0xFFEBDCC2)
+val Muted = Color(0xFF7A6E63)
+val Teal = Color(0xFF3FA89A)
+val TealDark = Color(0xFF1F6A61)
+val Rose = Color(0xFFE2607A)
+val Amber = Color(0xFFE8A33D)
+val Terra = Color(0xFFB4552F)
+val AmberSoft = Color(0xFFFBE3B0)
+val DisabledFill = Color(0xFFEBDCC2)
+val DisabledText = Color(0xFF8C8175)
+
+/** Colours Material3's ColorScheme has no slot for. Light only for now; dark mode comes later. */
 @Immutable
 data class LanPlayColors(
-    /** Accent used for text, rings and borders. Lime fails contrast on white, so light uses a deeper green. */
     val accentText: Color,
     val cardFace: Color,
     val cardBorder: Color,
     val cardNumber: Color,
     val cardOperator: Color,
-    /** Blue and red used for labels and icons outside the cards, tuned for the screen background. */
     val numberLabel: Color,
     val operatorLabel: Color,
     val successContainer: Color,
@@ -31,38 +42,22 @@ data class LanPlayColors(
     val onDisabledContainer: Color,
 )
 
-val DarkLanPlayColors = LanPlayColors(
-    accentText = Lime,
-    cardFace = Color(0xFF05070A),
-    cardBorder = Color(0xFF2C3440),
-    cardNumber = Color(0xFF5BA3E6),
-    cardOperator = Color(0xFFF26B5B),
-    numberLabel = Color(0xFF5BA3E6),
-    operatorLabel = Color(0xFFF26B5B),
-    successContainer = Color(0xFF1E3A24),
-    onSuccessContainer = Color(0xFF8EE5A0),
-    dangerContainer = Color(0xFF3A1F1C),
-    onDangerContainer = Color(0xFFF5A196),
-    danger = Color(0xFFF26B5B),
-    onDanger = Color(0xFF0E1116),
-    disabledContainer = Color(0xFF2A2F3A),
-    onDisabledContainer = Color(0xFF9AA3B2),
+val LightLanPlayColors = LanPlayColors(
+    accentText = TealDark,
+    cardFace = Color.White,
+    cardBorder = Ink,
+    cardNumber = TealDark,
+    cardOperator = Terra,
+    numberLabel = TealDark,
+    operatorLabel = Terra,
+    successContainer = Teal,
+    onSuccessContainer = Ink,
+    dangerContainer = Rose,
+    onDangerContainer = Ink,
+    danger = Rose,
+    onDanger = Ink,
+    disabledContainer = DisabledFill,
+    onDisabledContainer = DisabledText,
 )
 
-val LightLanPlayColors = LanPlayColors(
-    accentText = Color(0xFF4C7A00),
-    cardFace = Color(0xFFEEF2F8),
-    cardBorder = Color(0xFFB4BDCB),
-    cardNumber = Color(0xFF1F6FBF),
-    cardOperator = Color(0xFFC2402F),
-    numberLabel = Color(0xFF1F6FBF),
-    operatorLabel = Color(0xFFC2402F),
-    successContainer = Color(0xFFDDF3E1),
-    onSuccessContainer = Color(0xFF1B6B2F),
-    dangerContainer = Color(0xFFFDECEA),
-    onDangerContainer = Color(0xFFA32B1D),
-    danger = Color(0xFFD93F2C),
-    onDanger = Color(0xFFFFFFFF),
-    disabledContainer = Color(0xFFE3E7ED),
-    onDisabledContainer = Color(0xFF566071),
-)
+val DarkLanPlayColors = LightLanPlayColors

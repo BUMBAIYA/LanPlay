@@ -43,6 +43,7 @@ object Session {
         app = context.applicationContext as Application
         settings = AppSettings(app)
         discovery = RoomDiscovery(app)
+        Sfx.init(app)
     }
 
     fun clearError() { _error.value = null }

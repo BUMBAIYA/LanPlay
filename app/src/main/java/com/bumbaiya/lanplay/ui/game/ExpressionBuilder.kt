@@ -44,13 +44,20 @@ import androidx.compose.ui.unit.sp
 import com.bumbaiya.lanplay.game.combinemaths.EvalResult
 import com.bumbaiya.lanplay.game.combinemaths.ExpressionEvaluator
 import com.bumbaiya.lanplay.game.combinemaths.Hand
-import com.bumbaiya.lanplay.ui.components.BigButton
+import com.bumbaiya.lanplay.ui.components.CapsLabel
+import com.bumbaiya.lanplay.ui.components.ChunkButton
+import com.bumbaiya.lanplay.ui.theme.Ink
+import com.bumbaiya.lanplay.ui.theme.Muted
+import com.bumbaiya.lanplay.ui.theme.PanelBg
+import com.bumbaiya.lanplay.ui.theme.Sand
+import com.bumbaiya.lanplay.ui.theme.Rose
+import com.bumbaiya.lanplay.ui.theme.Amber
 import com.bumbaiya.lanplay.ui.components.CardKind
 import com.bumbaiya.lanplay.ui.components.DI
 import com.bumbaiya.lanplay.ui.components.DeckCard
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
 import com.bumbaiya.lanplay.ui.components.fitScale
-import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
+import com.bumbaiya.lanplay.ui.theme.Baloo
 import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
@@ -78,6 +85,8 @@ fun ExpressionBuilder(
     /** How tall the [actions] area is, so the cards can use all the rest of the space. */
     actionsHeight: Dp = 58.dp,
     style: BuilderStyle = BuilderStyle.Table,
+    /** The small caps label over the cards the player can build with. */
+    handLabel: String = "Your cards",
     /** Replaces the default Submit/Clear row. Receives submit and clear actions and whether Submit is locked. */
     actions: (@Composable (submit: () -> Unit, clear: () -> Unit, locked: Boolean) -> Unit)? = null,
 ) {
@@ -93,7 +102,7 @@ fun ExpressionBuilder(
     val slotBounds = remember { mutableMapOf<Int, Rect>() }      // each slot's area, by slot id
     var cardPx by remember { mutableStateOf(Size(48f, 66f)) }
     val colors = MaterialTheme.lanPlayColors
-    val stripColor = if (style == BuilderStyle.Catch) colors.danger else MaterialTheme.colorScheme.primary
+    val stripColor = Ink
 
     /** The slot under the dragged card's center, if the card is a number and could be raised there. */
     fun hoveredSlotIndex(d: Drag?): Int {
@@ -146,7 +155,7 @@ fun ExpressionBuilder(
         val handScale = fitScale(ownedCount.coerceAtLeast(1), DeckCardSize.Medium.width, DeckCardSize.Medium.height, 8.dp, maxWidth, handBudget.coerceAtLeast(60.dp), maxScale = 1.5f)
         Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(if (proof) 8.dp else 6.dp)) {
             // The victim's cards, when proving a catch.
-            if (proof) CardRow(null, colors.numberLabel, state.owned(), state, drag, { drag = it }, { drop(it) }, { cardPx = it },
+            if (proof) CardRow(handLabel, colors.numberLabel, state.owned(), state, drag, { drag = it }, { drop(it) }, { cardPx = it },
                 DeckCardSize.Medium, 8.dp, handScale)
 
             // The expression strip: tap or drop cards here. Long expressions shrink and wrap.
@@ -154,8 +163,8 @@ fun ExpressionBuilder(
                 FlowRow(
                     modifier = Modifier
                         .weight(1f).heightIn(min = if (proof) 80.dp else 76.dp)
-                        .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
-                        .border(1.5.dp, stripColor, RoundedCornerShape(12.dp))
+                        .background(PanelBg, RoundedCornerShape(16.dp))
+                        .border(2.5.dp, stripColor, RoundedCornerShape(16.dp))
                         .onGloballyPositioned { trayBounds = it.boundsInRoot() }
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -167,7 +176,7 @@ fun ExpressionBuilder(
                             modifier = Modifier
                                 .padding(top = 10.dp, end = 10.dp) // always reserve room for a raised card so the row never jumps
                                 .onGloballyPositioned { slotBounds[slot.id] = it.boundsInRoot() }
-                                .then(if (index == hovered) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)) else Modifier),
+                                .then(if (index == hovered) Modifier.border(2.dp, Amber, RoundedCornerShape(10.dp)) else Modifier),
                         ) {
                             val c = slot.card
                             DeckCard(
@@ -186,46 +195,43 @@ fun ExpressionBuilder(
                         }
                     }
                     // The empty dashed slot at the end: where the next card goes.
-                    val dash = MaterialTheme.lanPlayColors.cardBorder
+                    val dash = Muted
                     Box(Modifier.padding(top = 10.dp).size((if (proof) 48.dp else 44.dp) * stripScale, (if (proof) 66.dp else 60.dp) * stripScale).drawBehind {
                         drawRoundRect(dash, cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(), pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))))
                     })
                 }
-                if (style == BuilderStyle.Table) androidx.compose.material3.TextButton(onClick = ::clear, modifier = Modifier.heightIn(min = 36.dp)) {
-                    Text("Clear", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                ChunkButton("Clear", ::clear, fill = Sand, height = 38.dp, fontSize = 12.sp, padding = 14.dp)
             }
             if (liveResult) {
                 // The admin turned on the live result: always show a clear box so players can see it is on.
                 val r = if (state.slots.isEmpty()) null else ExpressionEvaluator.evaluate(state.expression(), engineHand())
                 val value = (r as? EvalResult.Value)?.value?.toString()
                 Row(
-                    Modifier.fillMaxWidth().background(MaterialTheme.lanPlayColors.successContainer, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp),
+                    Modifier.fillMaxWidth().background(com.bumbaiya.lanplay.ui.theme.Teal, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Text("Result", fontSize = 12.sp, color = MaterialTheme.lanPlayColors.onSuccessContainer)
                     Text(
                         when { value != null -> "= $value"; state.slots.isEmpty() -> "Build a row to see its result"; else -> "= ?  (not complete yet)" },
-                        fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = if (value != null) 18.sp else 13.sp,
+                        fontFamily = com.bumbaiya.lanplay.ui.theme.Baloo, fontWeight = FontWeight.Bold, fontSize = if (value != null) 18.sp else 13.sp,
                         color = MaterialTheme.lanPlayColors.onSuccessContainer,
                     )
                 }
             }
-            message?.let { Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface, maxLines = 1) }
+            message?.let { Text(it, fontSize = 12.sp, color = Rose, fontWeight = FontWeight.SemiBold, maxLines = 1) }
 
             if (style == BuilderStyle.Table) {
                 val owned = state.owned()
                 val numbers = owned.filter { it.kind == CardKind.Number }
                 val operators = owned.filter { it.kind == CardKind.Operator }
-                CardRow(null, colors.numberLabel, numbers + operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, scale = handScale)
+                CardRow(handLabel, colors.numberLabel, numbers + operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, scale = handScale)
             }
 
             // Buttons sit at the bottom of the play area, within thumb reach.
             Spacer(Modifier.weight(1f))
             if (actions != null) actions(::submit, ::clear, locked || !enabled)
             else Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                BigButton(if (locked) "Wait..." else submitLabel, ::submit, Modifier.weight(1f), icon = DI.Check, enabled = !locked && enabled, height = 48.dp)
-                BigButton("Clear", ::clear, icon = DI.Close, primary = false, height = 48.dp, modifier = Modifier.width(120.dp))
+                ChunkButton(if (locked) "Wait…" else submitLabel, ::submit, icon = DI.Check, enabled = !locked && enabled)
             }
         }
 
@@ -245,7 +251,7 @@ private fun CardRow(
     size: DeckCardSize = DeckCardSize.Medium, gap: androidx.compose.ui.unit.Dp = 8.dp, scale: Float = 1f,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        if (label != null) Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = labelColor)
+        if (label != null) CapsLabel(label)
         FlowRow(Modifier.fillMaxWidth().heightIn(min = 76.dp * scale).padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(gap), verticalArrangement = Arrangement.spacedBy(gap)) {
             cards.forEach { card ->
                 if (state.isUsed(card)) {

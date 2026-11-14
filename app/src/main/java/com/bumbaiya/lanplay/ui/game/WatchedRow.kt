@@ -4,14 +4,16 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -23,7 +25,6 @@ import com.bumbaiya.lanplay.game.combinemaths.RowSlot
 import com.bumbaiya.lanplay.ui.components.CardKind
 import com.bumbaiya.lanplay.ui.components.DeckCard
 import com.bumbaiya.lanplay.ui.components.DeckCardSize
-import com.bumbaiya.lanplay.ui.theme.lanPlayColors
 
 /** Watching another player work: their row appears card by card as they place it. */
 @Composable
@@ -33,12 +34,15 @@ fun WatchedRow(row: List<RowSlot>, name: String) = androidx.compose.foundation.l
         row.size, DeckCardSize.Row.width, DeckCardSize.Row.height, 8.dp, maxWidth, (maxHeight - 30.dp).coerceAtLeast(80.dp),
         extraW = 10.dp, extraH = 6.dp,
     )
-    Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            if (row.isEmpty()) "$name is thinking..." else "$name is building:",
-            style = MaterialTheme.typography.labelLarge, color = MaterialTheme.lanPlayColors.accentText,
-        )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        com.bumbaiya.lanplay.ui.components.CapsLabel(if (row.isEmpty()) "$name is thinking…" else "$name's row")
+        FlowRow(
+            Modifier.fillMaxWidth().heightIn(min = 76.dp)
+                .background(com.bumbaiya.lanplay.ui.theme.PanelBg, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                .border(2.5.dp, com.bumbaiya.lanplay.ui.theme.Ink, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
             row.forEachIndexed { i, slot ->
                 // key on position + faces so a card pops in when it appears or changes (like a tilt)
                 androidx.compose.runtime.key(i, slot) { PopIn { WatchedSlot(slot, fit) } }

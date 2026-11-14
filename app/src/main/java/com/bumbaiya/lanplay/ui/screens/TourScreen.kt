@@ -9,54 +9,30 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import com.bumbaiya.lanplay.ui.components.BigButton
-import com.bumbaiya.lanplay.ui.components.SectionLabel
-import com.bumbaiya.lanplay.ui.components.DI
-import com.bumbaiya.lanplay.ui.components.DIcon
-import com.bumbaiya.lanplay.ui.theme.SpaceGrotesk
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bumbaiya.lanplay.game.combinemaths.Op
-import com.bumbaiya.lanplay.ui.components.CardKind
-import com.bumbaiya.lanplay.ui.components.DeckCard
-import com.bumbaiya.lanplay.ui.components.DeckCardSize
-import com.bumbaiya.lanplay.ui.components.ScreenColumn
+import com.bumbaiya.lanplay.ui.components.*
 import com.bumbaiya.lanplay.ui.game.BCard
 import com.bumbaiya.lanplay.ui.game.BuilderState
 import com.bumbaiya.lanplay.ui.game.ExpressionBuilder
 import com.bumbaiya.lanplay.ui.game.toEngineHand
-import com.bumbaiya.lanplay.ui.theme.lanPlayColors
+import com.bumbaiya.lanplay.ui.theme.*
 
 private class TourStep(val title: String, val text: String, val needsAction: Boolean)
 
 private val Steps = listOf(
-    TourStep("Hit the target!", "Make the target number before your friends do. Let's try it!", false),
+    TourStep("Hit the target!", "Make the target number before your friends do. Teal cards are numbers, orange cards are operators.", false),
     TourStep("Pick the target", "Draw 1 to 3 number cards. Side by side, they make the target.", true),
     TourStep("Flip a card", "Tap the card to flip it from + to ×.", true),
     TourStep("Make 12", "Tap cards to add them to your row, then Submit.", true),
@@ -74,66 +50,68 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
     var forward by remember { mutableStateOf(true) }
     val last = step == Steps.lastIndex
 
-    ScreenColumn(gap = 18.dp) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Box(Modifier.offset(x = (-10).dp).size(44.dp).clickable(onClick = { if (step > 0) { forward = false; step-- } else onBack() }), contentAlignment = Alignment.Center) { DIcon(DI.Back) }
-            Text("Step ${step + 1} of ${Steps.size}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Box(Modifier.heightIn(min = 44.dp).widthIn(min = 44.dp).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
-                Text("Skip", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Frame(cards = true) {
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SquareButton(DI.Back, { if (step > 0) { forward = false; step-- } else onBack() })
+                Text("Step ${step + 1} of ${Steps.size}", fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Muted, maxLines = 1, softWrap = false)
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Steps.indices.forEach { i ->
+                        Box(Modifier.weight(1f).height(8.dp).background(if (i <= step) Teal else PanelBg, CircleShape).border(1.5.dp, Ink, CircleShape))
+                    }
+                }
+                ChunkButton("Skip", onBack, fill = Sand, height = 32.dp, fontSize = 12.sp, padding = 14.dp)
             }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Steps.indices.forEach { i ->
-                Box(Modifier.weight(1f).height(6.dp).background(if (i <= step) MaterialTheme.lanPlayColors.accentText else MaterialTheme.lanPlayColors.cardBorder, RoundedCornerShape(3.dp)))
-            }
-        }
-        AnimatedContent(
-            targetState = step,
-            transitionSpec = {
-                val dir = if (forward) 1 else -1
-                (slideInHorizontally { it / 4 * dir } + fadeIn()) togetherWith (slideOutHorizontally { -it / 4 * dir } + fadeOut())
-            },
-            label = "tour-step",
-        ) { s ->
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            AnimatedContent(
+                targetState = step, modifier = Modifier.weight(1f).fillMaxWidth(),
+                transitionSpec = {
+                    val dir = if (forward) 1 else -1
+                    (slideInHorizontally { it / 4 * dir } + fadeIn()) togetherWith (slideOutHorizontally { -it / 4 * dir } + fadeOut())
+                },
+                label = "tour-step",
+            ) { s ->
                 val st = Steps[s]
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(st.title, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 30.sp)
-                    Text(st.text, fontSize = 16.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Column(Modifier.width(260.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)) {
+                        Text(st.title, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Ink)
+                        Text(st.text, fontFamily = Inter, fontSize = 12.sp, lineHeight = 17.sp, color = Muted)
+                    }
+                    Panel(Modifier.weight(1f).fillMaxHeight(), padding = 12.dp, contentAlignment = Alignment.Center) {
+                        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            when (s) {
+                                0 -> {
+                                    CapsLabel("Numbers")
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { listOf("3", "7", "9").forEach { DeckCard(it, CardKind.Number, size = DeckCardSize.Large) } }
+                                    Spacer(Modifier.height(10.dp))
+                                    CapsLabel("Operators")
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { listOf("+", "−", "Σ", "Π").forEach { DeckCard(it, CardKind.Operator, size = DeckCardSize.Large) } }
+                                }
+                                1 -> DrawTargetDemo { done = true }
+                                2 -> TiltPractice { done = true }
+                                3 -> Practice(listOf(num(1, "3"), num(2, "4"), plus(3)), 12, "Tap the + in your row to flip it to ×.") { done = true }
+                                4 -> Practice(listOf(num(1, "4"), num(2, "3"), num(3, "0"), plus(4)), 64, "Drag the 3 onto the 4, then tap + and 0.") { done = true }
+                                5 -> Practice(listOf(num(1, "2"), num(2, "3"), num(3, "4"), BCard(4, "Π", CardKind.Operator, op = Op.Pi)), 24, "Tap Π, then 2, 3 and 4.") { done = true }
+                                6 -> {
+                                    CapsLabel("Dev's cards")
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        DeckCard("8", CardKind.Number, size = DeckCardSize.Large); DeckCard("2", CardKind.Number, size = DeckCardSize.Large)
+                                        DeckCard("5", CardKind.Number, size = DeckCardSize.Large); DeckCard("+", CardKind.Operator, size = DeckCardSize.Large)
+                                    }
+                                    Spacer(Modifier.height(10.dp))
+                                    ChunkButton("DHAPPA!", {}, fill = Rose)
+                                }
+                                else -> Box(Modifier.fillMaxSize()) { SparkleArt(Modifier.fillMaxSize()); Box(Modifier.align(Alignment.Center)) { LogoMark(Modifier.size(96.dp)) } }
+                            }
+                        }
+                    }
                 }
-                when (s) {
-                    1 -> DrawTargetDemo { done = true }
-                    2 -> TiltPractice { done = true }
-                    3 -> Practice(listOf(num(1, "3"), num(2, "4"), plus(3)), 12, "Tap 3, then +, then 4. Tap the + in your row to flip it to ×.") { done = true }
-                    4 -> Practice(listOf(num(1, "4"), num(2, "3"), num(3, "0"), plus(4)), 64, "Drag the 3 onto the 4, then tap + and 0.") { done = true }
-                    5 -> Practice(
-                        listOf(num(1, "2"), num(2, "3"), num(3, "4"), BCard(4, "Π", CardKind.Operator, op = Op.Pi)), 24,
-                        "Tap Π, then 2, 3 and 4.",
-                    ) { done = true }
-                    0 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        SectionLabel("Numbers")
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { listOf("3", "7", "9").forEach { DeckCard(it, CardKind.Number, size = DeckCardSize.Large) } }
-                        SectionLabel("Operators")
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { listOf("+", "−", "Σ", "Π").forEach { DeckCard(it, CardKind.Operator, size = DeckCardSize.Large) } }
-                    }
-                    6 -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        DeckCard("8", CardKind.Number, size = DeckCardSize.Large); DeckCard("2", CardKind.Number, size = DeckCardSize.Large)
-                        DeckCard("5", CardKind.Number, size = DeckCardSize.Large); DeckCard("+", CardKind.Operator, size = DeckCardSize.Large)
-                    }
-                    7 -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        "DHAPPA".forEachIndexed { i, c -> DeckCard(c.toString(), if (i % 2 == 0) CardKind.Number else CardKind.Operator, size = DeckCardSize.Large) }
-                    }
-                    else -> {}
-                }
-                if (st.needsAction && done) Text("Nice!", fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.lanPlayColors.accentText)
             }
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            BigButton(
-                if (last) "Let's play!" else "Next", { if (last) onBack() else { forward = true; step++ } },
-                icon = if (last) DI.Play else DI.Right, enabled = !Steps[step].needsAction || done,
-            )
-            if (last) BigButton("Read the full rules", onFullRules, icon = DI.Book, primary = false, height = 48.dp, fontSize = 16)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (Steps[step].needsAction && done) Chip("Nice!", fill = Teal, fontSize = 12.sp)
+                Spacer(Modifier.weight(1f))
+                if (last) ChunkButton("Read the full rules", onFullRules, fill = Sand, icon = DI.Book)
+                ChunkButton(if (last) "Let's play!" else "Next", { if (last) onBack() else { forward = true; step++ } }, fill = Teal, icon = if (last) DI.Play else DI.Right, enabled = !Steps[step].needsAction || done)
+            }
         }
     }
 }
@@ -143,37 +121,40 @@ private fun plus(id: Int) = BCard(id, "+", CardKind.Operator, alt = "×", op = O
 
 @Composable
 private fun DrawTargetDemo(onDone: () -> Unit) {
-    val deck = listOf("6", "9", "2")
+    val deck = listOf("6", "7", "2")
     var drawn by remember { mutableIntStateOf(0) }
     var stopped by remember { mutableStateOf(false) }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        deck.forEachIndexed { i, g ->
-            AnimatedVisibility(i < drawn, enter = scaleIn() + fadeIn()) { DeckCard(g, CardKind.Number, size = DeckCardSize.Large) }
-        }
+    CapsLabel("Target")
+    Box(Modifier.height(60.dp), contentAlignment = Alignment.Center) {
+        if (drawn == 0) Text("Draw a card", fontFamily = Inter, fontSize = 12.sp, color = Muted)
+        else key(drawn) { FlipIn { TargetBox(deck.take(drawn).joinToString(""), scale = 1.3f) } }
     }
-    if (!stopped) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            BigButton("Draw a card", { drawn++ }, Modifier.weight(1f), icon = DI.DrawCard, primary = false, enabled = drawn < 3, height = 52.dp, fontSize = 16)
-            BigButton("Stop here", { stopped = true; onDone() }, Modifier.weight(1f), icon = DI.Check, enabled = drawn > 0, height = 52.dp, fontSize = 16)
-        }
-    } else {
-        Text("The target is ${deck.take(drawn).joinToString("")}.", style = MaterialTheme.typography.titleMedium)
-    }
+    Spacer(Modifier.height(8.dp))
+    if (!stopped) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        ChunkButton("Draw a card", { drawn++ }, fill = Teal, icon = DI.DrawCard, enabled = drawn < 3)
+        ChunkButton("Stop here", { stopped = true; onDone() }, icon = DI.Check, enabled = drawn > 0)
+    } else Text("The target is ${deck.take(drawn).joinToString("")}.", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Ink)
 }
 
 @Composable
 private fun TiltPractice(onDone: () -> Unit) {
     var card by remember { mutableStateOf(plus(0)) }
     LaunchedEffect(card.glyph) { if (card.glyph == "×") onDone() }
-    DeckCard(card.glyph, CardKind.Operator, altGlyph = card.alt, size = DeckCardSize.Large, onClick = { card = card.tilted() })
+    DeckCard(card.glyph, CardKind.Operator, altGlyph = card.alt, size = DeckCardSize.Large, scale = 1.5f, onClick = { card = card.tilted() })
 }
 
 @Composable
-private fun Practice(cards: List<BCard>, target: Long, hint: String, onDone: () -> Unit) {
+private fun ColumnScope.Practice(cards: List<BCard>, target: Long, hint: String, onDone: () -> Unit) {
     val state = remember { BuilderState(cards) }
-    var showHint by remember { mutableStateOf(false) }
-    Text("TARGET  $target", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.lanPlayColors.accentText)
-    ExpressionBuilder(state, engineHand = { state.allCards().toEngineHand() }, target = target, onHit = onDone, penaltyMs = 1000)
-    TextButton(onClick = { showHint = !showHint }) { Text(if (showHint) "Hide hint" else "Show hint", color = MaterialTheme.lanPlayColors.accentText) }
-    if (showHint) Text(hint, style = MaterialTheme.typography.bodyMedium)
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        CapsLabel("Target"); TargetBox(target.toString())
+        Spacer(Modifier.weight(1f))
+        Text(hint, fontFamily = Inter, fontSize = 10.sp, color = Muted, textAlign = TextAlign.End, maxLines = 2, modifier = Modifier.widthIn(max = 200.dp))
+    }
+    ExpressionBuilder(
+        state, engineHand = { state.allCards().toEngineHand() }, target = target, onHit = onDone, penaltyMs = 1000, modifier = Modifier.weight(1f), actionsHeight = 50.dp, handLabel = "Your row",
+        actions = { submit, _, locked ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ChunkButton(if (locked) "Wait…" else "Submit", submit, icon = DI.Check, enabled = !locked, height = 38.dp, fontSize = 13.sp) }
+        },
+    )
 }

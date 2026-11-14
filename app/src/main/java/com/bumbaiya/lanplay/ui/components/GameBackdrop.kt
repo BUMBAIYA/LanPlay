@@ -25,7 +25,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bumbaiya.lanplay.ui.theme.Amber
+import com.bumbaiya.lanplay.ui.theme.Baloo
+import com.bumbaiya.lanplay.ui.theme.Ink
+import com.bumbaiya.lanplay.ui.theme.Rose
+import com.bumbaiya.lanplay.ui.theme.Teal
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -34,12 +40,12 @@ private val glyphs = listOf("+", "−", "×", "÷", "7", "3", "9", "5", "2", "8"
 private class Ghost(val x: Float, val phase: Float, val laps: Int, val size: Float, val tilt: Float, val sway: Float, val glyph: String)
 
 /**
- * The animated table cloth behind every game screen: soft colour glows drifting about and faint
- * number and operator cards floating slowly upwards. Pure canvas drawing driven by one clock, so it
- * costs almost nothing. Every motion loops exactly, so there is never a visible jump.
+ * The animated cloth behind every screen: soft warm glows drifting about, and, on the Combine game's
+ * screens only ([cards]), faint number and operator cards floating slowly upwards. One clock drives it all and
+ * every motion loops exactly. Cheap: it only redraws a canvas.
  */
 @Composable
-fun GameBackdrop(modifier: Modifier = Modifier) {
+fun Backdrop(cards: Boolean, modifier: Modifier = Modifier) {
     val clock by rememberInfiniteTransition(label = "backdrop").animateFloat(
         0f, 1f, infiniteRepeatable(tween(60_000, easing = LinearEasing), RepeatMode.Restart), label = "t",
     )
@@ -48,29 +54,28 @@ fun GameBackdrop(modifier: Modifier = Modifier) {
         val r = Random(7)
         List(16) { i -> Ghost(r.nextFloat(), r.nextFloat(), 1 + i % 3, 0.7f + r.nextFloat() * 0.8f, (r.nextFloat() - 0.5f) * 50f, 4f + r.nextFloat() * 10f, glyphs[i % glyphs.size]) }
     }
-    val glows = listOf(Color(0xFFB6F24A), Color(0xFF4A90E2), Color(0xFFE2603C))
+    val glows = listOf(Amber to 0.28f, Rose to 0.14f, Teal to 0.16f)
     Canvas(modifier.fillMaxSize()) {
         val t = clock
-        // Glows: wide, very soft, slowly circling.
-        glows.forEachIndexed { i, c ->
-            val a = 2 * PI.toFloat() * (t * (i + 1) + i * 0.33f)
-            val cx = size.width * (0.5f + 0.38f * sin(a))
-            val cy = size.height * (0.5f + 0.34f * sin(a * 0.5f + i))
-            val r = size.minDimension * (0.65f + 0.1f * i)
-            drawCircle(Brush.radialGradient(listOf(c.copy(alpha = 0.13f), Color.Transparent), Offset(cx, cy), r), r, Offset(cx, cy))
+        glows.forEachIndexed { i, (c, a) ->
+            val ang = 2 * PI.toFloat() * (t * (i + 1) + i * 0.33f)
+            val cx = size.width * (0.5f + 0.38f * sin(ang))
+            val cy = size.height * (0.5f + 0.34f * sin(ang * 0.5f + i))
+            val r = size.minDimension * (0.75f + 0.1f * i)
+            drawCircle(Brush.radialGradient(listOf(c.copy(alpha = a), Color.Transparent), Offset(cx, cy), r), r, Offset(cx, cy))
         }
-        // Ghost cards drift from the bottom to the top and sway a little.
+        if (!cards) return@Canvas
         ghosts.forEach { g ->
             val w = 46.dp.toPx() * g.size
             val h = 64.dp.toPx() * g.size
             val progress = (g.phase + t * g.laps) % 1f
             val y = size.height + h - progress * (size.height + 2 * h)
             val x = g.x * (size.width - w) + sin(2 * PI.toFloat() * (t * g.laps + g.phase)) * g.sway.dp.toPx()
-            val fade = (1f - kotlin.math.abs(progress - 0.5f) * 2f).coerceIn(0f, 1f).let { (it * 3f).coerceAtMost(1f) }
+            val fade = (1f - abs(progress - 0.5f) * 2f).coerceIn(0f, 1f).let { (it * 3f).coerceAtMost(1f) }
             rotate(g.tilt + sin(2 * PI.toFloat() * (t * g.laps + g.phase)) * 8f, Offset(x + w / 2, y + h / 2)) {
-                drawRoundRect(Color.White.copy(alpha = 0.025f * fade), Offset(x, y), Size(w, h), CornerRadius(8.dp.toPx()))
-                drawRoundRect(Color.White.copy(alpha = 0.07f * fade), Offset(x, y), Size(w, h), CornerRadius(8.dp.toPx()), Stroke(1.2.dp.toPx()))
-                val layout = measurer.measure(g.glyph, TextStyle(fontSize = (26 * g.size).sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.11f * fade)))
+                drawRoundRect(Ink.copy(alpha = 0.03f * fade), Offset(x, y), Size(w, h), CornerRadius(8.dp.toPx()))
+                drawRoundRect(Ink.copy(alpha = 0.10f * fade), Offset(x, y), Size(w, h), CornerRadius(8.dp.toPx()), Stroke(1.5.dp.toPx()))
+                val layout = measurer.measure(g.glyph, TextStyle(fontFamily = Baloo, fontSize = (22 * g.size).sp, fontWeight = FontWeight.Bold, color = Ink.copy(alpha = 0.12f * fade)))
                 drawText(layout, topLeft = Offset(x + (w - layout.size.width) / 2, y + (h - layout.size.height) / 2))
             }
         }
