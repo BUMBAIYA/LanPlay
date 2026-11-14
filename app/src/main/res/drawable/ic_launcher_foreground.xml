@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The LanPlay mark: Wi-Fi waves over a play button. Kept inside the 66dp safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <!-- A blue number card behind, a lime operator card in front, tilted like the cards in the game. -->
-    <group android:rotation="-12" android:pivotX="54" android:pivotY="54">
-        <path android:fillColor="#5BA3E6" android:pathData="M26,30h30a5,5 0 0 1 5,5v38a5,5 0 0 1 -5,5h-30a5,5 0 0 1 -5,-5v-38a5,5 0 0 1 5,-5z" />
-        <path android:fillColor="#0E1116" android:pathData="M37,44h8v6h-8zM41,40v14" android:strokeWidth="0" />
-    </group>
-    <group android:rotation="10" android:pivotX="54" android:pivotY="54">
-        <path android:fillColor="#B6F24A" android:pathData="M52,30h30a5,5 0 0 1 5,5v38a5,5 0 0 1 -5,5h-30a5,5 0 0 1 -5,-5v-38a5,5 0 0 1 5,-5z" />
-        <path android:fillColor="#0E1116" android:pathData="M64,48h6v7h7v6h-7v7h-6v-7h-7v-6h7z" />
-    </group>
+    <path android:strokeColor="#241C18" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M29,42A34,34 0 0 1 79,42" />
+    <path android:strokeColor="#241C18" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M37,51A23,23 0 0 1 71,51" />
+    <path android:strokeColor="#241C18" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M45,60A12,12 0 0 1 63,60" />
+    <path android:fillColor="#3FA89A" android:strokeColor="#241C18" android:strokeWidth="3.5" android:strokeLineJoin="round" android:pathData="M45,66L64,76L45,86Z" />
 </vector>
