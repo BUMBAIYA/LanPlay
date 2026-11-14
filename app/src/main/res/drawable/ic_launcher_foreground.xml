@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The LanPlay mark: Wi-Fi waves over a play button. Kept inside the 66dp safe zone. -->
+<!-- The LanPlay mark: Wi-Fi waves over a play button. Scaled to 76% so the round launcher masks never clip it. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <group android:scaleX="0.76" android:scaleY="0.76" android:pivotX="54" android:pivotY="58" android:translateY="-4">
     <path android:strokeColor="#241C18" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M29,42A34,34 0 0 1 79,42" />
     <path android:strokeColor="#241C18" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M37,51A23,23 0 0 1 71,51" />
     <path android:strokeColor="#241C18" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M45,60A12,12 0 0 1 63,60" />
     <path android:fillColor="#3FA89A" android:strokeColor="#241C18" android:strokeWidth="3.5" android:strokeLineJoin="round" android:pathData="M45,66L64,76L45,86Z" />
+    </group>
 </vector>
