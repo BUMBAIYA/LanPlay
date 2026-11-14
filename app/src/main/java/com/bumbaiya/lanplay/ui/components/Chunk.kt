@@ -115,7 +115,7 @@ fun ChunkButton(
     val fg = if (enabled) ink else DisabledText
     Chunk(
         modifier.height(height + 4.dp), onClick = onClick, fill = if (enabled) fill else DisabledFill, enabled = enabled,
-        border = if (enabled) 2.5.dp else 0.dp, shadow = if (enabled) 4.dp else 4.dp, contentAlignment = Alignment.Center,
+        border = 2.5.dp, shadow = 4.dp, contentAlignment = Alignment.Center,
     ) {
         Row(Modifier.padding(horizontal = padding), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (icon != null) DIcon(icon, tint = fg, size = 18.dp)

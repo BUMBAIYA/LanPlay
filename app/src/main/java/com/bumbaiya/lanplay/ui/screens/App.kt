@@ -55,6 +55,17 @@ private enum class Screen { Games, GameMenu, Settings, Credits, Host, Join, Solo
  */
 @Composable
 fun LanPlayApp() {
+    // Small phones: shrink everything a little so the no-scroll layouts still fit (reference ~780 x 430 dp).
+    val cfg = androidx.compose.ui.platform.LocalConfiguration.current
+    val d = androidx.compose.ui.platform.LocalDensity.current
+    val f = minOf(1f, cfg.screenHeightDp.coerceAtMost(cfg.screenWidthDp) / 430f, cfg.screenWidthDp.coerceAtLeast(cfg.screenHeightDp) / 780f)
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(d.density * f, d.fontScale),
+    ) { LanPlayAppContent() }
+}
+
+@Composable
+private fun LanPlayAppContent() {
     var screen by rememberSaveable { mutableStateOf(Screen.Games) }
     val client by Session.client.collectAsState()
     val inGame = client != null
