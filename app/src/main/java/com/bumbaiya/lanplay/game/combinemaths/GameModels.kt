@@ -56,6 +56,10 @@ sealed interface Phase {
 @Serializable
 data class RowSlot(val glyph: String, val raised: String? = null)
 
+/** What a player last handed in: the row they built, what it came to, and whether they passed instead. */
+@Serializable
+data class Submitted(val row: List<RowSlot>, val value: String? = null, val passed: Boolean = false)
+
 /** After a player passes (or times out), others may catch them until [closesAt]. */
 @Serializable
 data class CatchWindow(val playerId: String, val closesAt: Long)
@@ -73,6 +77,8 @@ data class GameState(
     val catchWindows: List<CatchWindow> = emptyList(),
     /** What the current player is building right now, so everyone can watch. Cleared when the turn ends. */
     val liveRow: List<RowSlot> = emptyList(),
+    /** Each player's last answer or pass this round, so anyone can look at it when peeking at their cards. */
+    val lastSubmitted: Map<String, Submitted> = emptyMap(),
     val round: Int = 0,
     val nextCardId: Int = 1,
     /** Last event in words, shown to everyone ("Asha was caught!"). */

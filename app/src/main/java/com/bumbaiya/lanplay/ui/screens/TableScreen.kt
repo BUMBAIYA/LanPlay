@@ -92,7 +92,7 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
                         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             val peek = shownId?.let { state.player(it) }
                             when {
-                                peek != null -> PeekPanel(peek.name, state.players.indexOf(peek), peek.score, state.hands[peek.id]?.hand.orEmpty().map { it.toBCard() }, state.hands[peek.id]?.out == true) { shownId = null }
+                                peek != null -> PeekPanel(peek.name, state.players.indexOf(peek), peek.score, state.lastSubmitted[peek.id], state.target.joinToString(""), state.hands[peek.id]?.hand.orEmpty().map { it.toBCard() }, state.hands[peek.id]?.out == true) { shownId = null }
                                 phase is Phase.DrawingTarget -> DrawingTargetControls(client, state, phase, myId)
                                 phase is Phase.Turns -> if (iAmOut) OutView(state, phase, now) else MyTurn(client, state, phase, myId, now)
                             }
@@ -246,7 +246,7 @@ private fun OpponentRail(
 
 /** Everything one player is holding, full size, in place of the table. */
 @Composable
-private fun ColumnScope.PeekPanel(name: String, index: Int, score: Int, cards: List<BCard>, out: Boolean, onClose: () -> Unit) {
+private fun ColumnScope.PeekPanel(name: String, index: Int, score: Int, last: com.bumbaiya.lanplay.game.combinemaths.Submitted?, target: String, cards: List<BCard>, out: Boolean, onClose: () -> Unit) {
     Panel(Modifier.weight(1f).fillMaxWidth(), padding = 14.dp) {
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -258,10 +258,24 @@ private fun ColumnScope.PeekPanel(name: String, index: Int, score: Int, cards: L
                 ChunkButton("Close", onClose, fill = Sand, height = 32.dp, fontSize = 12.sp, padding = 14.dp)
             }
             CapsLabel("In hand")
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().heightIn(min = 80.dp)) {
                 val fit = fitScale(cards.size, DeckCardSize.Large.width, DeckCardSize.Large.height, 8.dp, maxWidth, maxHeight, maxScale = 1.2f)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     cards.forEach { c -> DeckCard(c.glyph, c.kind, altGlyph = c.alt, size = DeckCardSize.Large, scale = fit, dimmed = out) }
+                }
+            }
+            if (last != null) {
+                CapsLabel("Last submitted")
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    last.row.forEach { slot ->
+                        val kind = if (slot.glyph.firstOrNull()?.isDigit() == true) CardKind.Number else CardKind.Operator
+                        Box(Modifier.padding(top = 6.dp, end = 8.dp)) {
+                            DeckCard(slot.glyph, kind, size = DeckCardSize.Small, scale = 1.25f)
+                            slot.raised?.let { DeckCard(it, CardKind.Number, size = DeckCardSize.Small, scale = 0.7f, modifier = Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-6).dp)) }
+                        }
+                    }
+                    if (last.value != null) Text("= ${last.value}", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Ink)
+                    Chip(if (last.passed) "Passed" else "Missed target", fill = if (last.passed) Sand else Rose)
                 }
             }
             Text("Tap any player on the left to see their cards", Modifier.fillMaxWidth(), fontFamily = Inter, fontSize = 10.sp, color = Muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center)

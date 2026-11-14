@@ -129,7 +129,7 @@ class GameEngine(private val random: Random = Random.Default) {
         }
         val drawer = s.players.filter { it.connected }.random(random)
         return bump(state.copy(
-            round = s.round + 1, hands = hands, catchWindows = emptyList(), liveRow = emptyList(), target = emptyList(),
+            round = s.round + 1, hands = hands, catchWindows = emptyList(), liveRow = emptyList(), lastSubmitted = emptyMap(), target = emptyList(),
             phase = Phase.DrawingTarget(drawer.id, emptyList()),
             notice = "${drawer.name} draws the target",
         ))
@@ -161,7 +161,9 @@ class GameEngine(private val random: Random = Random.Default) {
             ok(finishRound(s, me.id, "${me.name} hit the target!"))
         } else {
             val locked = rp.copy(lockedUntil = now + s.settings.penaltySeconds * 1000L)
-            ok(s.copy(hands = s.hands + (me.id to locked), notice = "${me.name} got it wrong (+${s.settings.penaltySeconds}s penalty)"))
+            val hand = Hand(rp.hand.mapNotNull { it.digit }, rp.hand.mapNotNull { it.op })
+            val value = (ExpressionEvaluator.evaluate(expression, hand, Rational.of(target)) as? EvalResult.Value)?.value?.toString()
+            ok(s.copy(hands = s.hands + (me.id to locked), lastSubmitted = s.lastSubmitted + (me.id to Submitted(s.liveRow, value)), notice = "${me.name} got it wrong (+${s.settings.penaltySeconds}s penalty)"))
         }
     }
 
@@ -204,8 +206,9 @@ class GameEngine(private val random: Random = Random.Default) {
         var i = order.indexOf(p.currentId)
         var next: String
         do { i = (i + 1) % order.size; next = order[i] } while (next !in active)
+        val last = if (passed && s.liveRow.isNotEmpty()) s.lastSubmitted + (p.currentId to Submitted(s.liveRow, passed = true)) else s.lastSubmitted
         return bump(s.copy(
-            catchWindows = windows, liveRow = emptyList(),
+            catchWindows = windows, liveRow = emptyList(), lastSubmitted = last,
             phase = Phase.Turns(next, hasDrawn = false, turnEndsAt = now + s.settings.turnSeconds * 1000L),
             notice = notice,
         ))
