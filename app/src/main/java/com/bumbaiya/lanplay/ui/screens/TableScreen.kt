@@ -147,7 +147,8 @@ private fun TableHeader(state: GameState, phase: Phase, now: Long, myId: String,
             val myTurn = phase.currentId == myId
             val total = state.settings.turnSeconds.coerceAtLeast(1)
             val secs = ((phase.turnEndsAt - now) / 1000 + 1).toInt().coerceIn(0, total)
-            LaunchedEffect(secs, myTurn) { if (myTurn && secs in 1..5) Sfx.tick() }
+            val ctx = LocalContext.current.applicationContext
+            LaunchedEffect(secs, myTurn) { if (myTurn && secs in 1..5) { Sfx.tick(); Feedback.tickBuzz(ctx) } }
             Chip(if (myTurn) "Your turn" else (state.player(phase.currentId)?.name ?: "") + "'s turn", fill = if (myTurn) Teal else Sand, modifier = if (myTurn) Modifier.pulse() else Modifier)
             TimerRing(secs, total, Rose, 40.dp)
         }

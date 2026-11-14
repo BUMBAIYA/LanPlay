@@ -79,12 +79,16 @@ private fun Scene.plus(x: Float, y: Float, c: Color = Ink, w: Float = 3f, h: Flo
 private fun Scene.dot(x: Float, y: Float, r: Float, c: Color, a: Float = 0.5f) = d.drawCircle(c.copy(alpha = a), r, Offset(x, y))
 
 private fun Scene.miniCard(x: Float, y: Float, rot: Float, sc: Float, glyph: String, col: Color, bob: Float = 0f) {
-    d.withTransform({ translate(x, y + bob); rotate(rot, Offset.Zero); scale(sc, sc, Offset.Zero) }) {
+    // Every small card drifts a little: a slow float and sway, each out of step with its neighbours.
+    val ph = x * 0.011f + y * 0.007f
+    val by = y + bob + wave(t, 3.4f, ph) * 2.2f
+    val r = rot + wave(t, 4.6f, ph + 0.25f) * 2.5f
+    d.withTransform({ translate(x, by); rotate(r, Offset.Zero); scale(sc, sc, Offset.Zero) }) {
         drawRoundRect(Ink.copy(alpha = 0.35f), Offset(-19f, -24f), Size(40f, 56f), CornerRadius(8f))
         drawRoundRect(Color.White, Offset(-20f, -28f), Size(40f, 56f), CornerRadius(8f))
         drawRoundRect(Ink, Offset(-20f, -28f), Size(40f, 56f), CornerRadius(8f), Stroke(2.6f))
     }
-    d.withTransform({ translate(x, y + bob); rotate(rot, Offset.Zero); scale(sc, sc, Offset.Zero) }) { Scene(this, m, t).text(glyph, 30f, col, 0f, 0f) }
+    d.withTransform({ translate(x, by); rotate(r, Offset.Zero); scale(sc, sc, Offset.Zero) }) { Scene(this, m, t).text(glyph, 30f, col, 0f, 0f) }
 }
 
 private fun wave(t: Float, period: Float, phase: Float = 0f) = sin(2f * PI.toFloat() * (t / period + phase))
@@ -129,8 +133,8 @@ fun HostArt(modifier: Modifier = Modifier) = Art(modifier) {
         arc(r, h, y, Ink, 9f, a)
     }
     disc(100f, 123f, 7.5f, Ink)
-    miniCard(34f, 44f, -14f, 0.7f, "7", TealDark); miniCard(168f, 40f, 12f, 0.7f, "+", Terra)
-    miniCard(160f, 114f, -10f, 0.6f, "3", TealDark); miniCard(38f, 112f, 12f, 0.6f, "×", Terra)
+    miniCard(32f, 38f, -16f, 0.72f, "7", TealDark); miniCard(174f, 52f, 14f, 0.55f, "+", Terra)
+    miniCard(164f, 116f, 10f, 0.68f, "3", TealDark)
     dot(22f, 86f, 3f, Ink); dot(180f, 80f, 3f, Ink); plus(100f, 16f, Color.White)
 }
 
@@ -149,8 +153,8 @@ fun JoinArt(modifier: Modifier = Modifier) = Art(modifier) {
         drawLine(Ink, Offset(102f, 72f), Offset(116f, 86f), 7f, StrokeCap.Round)
         drawLine(Ink, Offset(116f, 86f), Offset(102f, 100f), 7f, StrokeCap.Round)
     }
-    miniCard(34f, 44f, -14f, 0.7f, "7", TealDark); miniCard(168f, 40f, 12f, 0.7f, "×", Terra)
-    miniCard(160f, 114f, -10f, 0.6f, "9", TealDark); miniCard(38f, 112f, 12f, 0.6f, "+", Terra)
+    miniCard(164f, 36f, -12f, 0.7f, "×", Terra); miniCard(172f, 108f, 18f, 0.55f, "9", TealDark)
+    miniCard(36f, 114f, 12f, 0.7f, "7", TealDark)
     dot(22f, 86f, 3f, Color.White); dot(180f, 80f, 3f, Color.White); plus(100f, 16f, Color.White)
 }
 
@@ -171,8 +175,8 @@ fun SoloArt(modifier: Modifier = Modifier) = Art(modifier) {
     val h = (t % 72f) / 72f * 2f * PI.toFloat() + 2.6f
     d.drawLine(Terra, Offset(100f, 86f), Offset(100f + 12f * sin(h), 86f - 12f * cos(h)), 3.2f, StrokeCap.Round)
     disc(100f, 86f, 5f, Ink)
-    miniCard(34f, 44f, -14f, 0.7f, "5", TealDark); miniCard(168f, 40f, 12f, 0.7f, "9", TealDark)
-    miniCard(160f, 114f, -10f, 0.6f, "+", Terra); miniCard(38f, 112f, 12f, 0.6f, "×", Terra)
+    miniCard(36f, 46f, 10f, 0.7f, "5", TealDark); miniCard(30f, 110f, -16f, 0.58f, "+", Terra)
+    miniCard(170f, 42f, -9f, 0.75f, "9", TealDark)
     dot(22f, 86f, 3f, Ink); dot(180f, 80f, 3f, Ink); plus(100f, 16f, Ink)
 }
 
@@ -231,6 +235,28 @@ fun WinnerArt(modifier: Modifier = Modifier) = Art(modifier) {
         }
     }
     plus(100f, 12f, Ink, 3f, 5f)
+}
+
+/** The solo loss card: an alarm clock with a sad face and a tear, corner cards drifting. */
+@Composable
+fun LoserArt(modifier: Modifier = Modifier) = Art(modifier) {
+    disc(100f, 82f, 68f, Color(0xFFF7BFCB)); disc(100f, 82f, 52f, Color(0xFFF2A3B4))
+    miniCard(34f, 44f, -14f, 0.7f, "6", TealDark); miniCard(168f, 40f, 12f, 0.7f, "×", Terra)
+    miniCard(160f, 116f, -10f, 0.6f, "4", TealDark); miniCard(38f, 114f, 12f, 0.6f, "=", Terra)
+    d.withTransform({ translate(0f, wave(t, 3f) * -2f) }) {
+        Scene(this, m, t).apply {
+            for (bx in listOf(76f, 124f)) { disc(bx, 46f, 10f, Amber); circleLine(bx, 46f, 10f, Ink, 3f) }
+            d.drawLine(Ink, Offset(100f, 36f), Offset(100f, 30f), 3.4f, StrokeCap.Round)
+            shadowDisc(100f, 82f, 42f); disc(100f, 82f, 42f, Color.White); circleLine(100f, 82f, 42f, Ink, 3.4f)
+            for ((x1, y1, x2, y2) in listOf(listOf(100f, 46f, 100f, 51f), listOf(100f, 113f, 100f, 118f), listOf(64f, 82f, 69f, 82f), listOf(131f, 82f, 136f, 82f)))
+                d.drawLine(Ink, Offset(x1, y1), Offset(x2, y2), 2.6f, StrokeCap.Round)
+            disc(87f, 76f, 4.6f, Ink); disc(113f, 76f, 4.6f, Ink)
+            val frown = Path().apply { moveTo(85f, 101f); quadraticBezierTo(100f, 88f, 115f, 101f) }
+            d.drawPath(frown, Ink, style = Stroke(3.6f, cap = StrokeCap.Round))
+            val tear = Path().also { PathParser().parsePathString("M121 84c4 6 6 9 6 12a6 6 0 0 1-12 0c0-3 2-6 6-12z").toPath(it) }
+            d.drawPath(tear, Teal); d.drawPath(tear, Ink, style = Stroke(2.4f, join = StrokeJoin.Round))
+        }
+    }
 }
 
 /** A big round state picture (joining, failed, removed, disconnected): a disc, a white face and one icon. */

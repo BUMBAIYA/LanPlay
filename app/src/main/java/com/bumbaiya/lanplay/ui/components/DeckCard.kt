@@ -1,6 +1,11 @@
 package com.bumbaiya.lanplay.ui.components
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -96,6 +101,10 @@ fun DeckCard(
     val pop = remember { Animatable(0.7f) }
     LaunchedEffect(Unit) { pop.animateTo(1f, spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)) }
 
+    // A slow idle float and sway so a hand of cards never sits perfectly still. Each card starts at its own point.
+    val idle by rememberInfiniteTransition(label = "idle").animateFloat(
+        -1f, 1f, infiniteRepeatable(tween(2600, easing = androidx.compose.animation.core.FastOutSlowInEasing), RepeatMode.Reverse, androidx.compose.animation.core.StartOffset(((glyph.hashCode() and 0xFF) * 10) % 2600)), label = "idle-t",
+    )
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
     val active = onClick != null || onLongClick != null
@@ -113,7 +122,7 @@ fun DeckCard(
             Modifier
                 .size(size.width * scale, size.height * scale)
                 .drawBehind { drawRoundRect(Ink, topLeft = Offset(0f, lift.toPx()), size = this.size, cornerRadius = CornerRadius(radius.toPx())) }
-                .graphicsLayer { rotationZ = tilt.value; scaleX = pop.value * (1f - 0.03f * depth); scaleY = pop.value * (1f - 0.03f * depth); translationY = depth * lift.toPx() }
+                .graphicsLayer { rotationZ = tilt.value + idle * 1.2f; scaleX = pop.value * (1f - 0.03f * depth); scaleY = pop.value * (1f - 0.03f * depth); translationY = depth * lift.toPx() + idle * 1.5.dp.toPx() }
                 .background(Color.White, shape)
                 .border(border, Ink, shape)
                 .combinedClickable(interactionSource = source, indication = null, enabled = active, onClick = { Sfx.up(); onClick?.invoke() }, onLongClick = onLongClick),

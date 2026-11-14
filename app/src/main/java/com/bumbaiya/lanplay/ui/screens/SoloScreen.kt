@@ -3,6 +3,7 @@ package com.bumbaiya.lanplay.ui.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -41,7 +42,7 @@ import com.bumbaiya.lanplay.ui.game.ExpressionBuilder
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
-private enum class SoloPhase { Setup, Playing, Over }
+private enum class SoloPhase { Setup, Playing, Won, Lost }
 private const val ROUND_SECONDS = 60
 
 /**
@@ -56,15 +57,21 @@ fun SoloScreen(onBack: () -> Unit) {
     var round by remember { mutableIntStateOf(0) }
     var lastTarget by remember { mutableStateOf("") }
     var best by remember { mutableIntStateOf(0) }
+    var tookSeconds by remember { mutableIntStateOf(0) }
     var secondsLeft by remember { mutableIntStateOf(ROUND_SECONDS) }
     val targetDigits = remember { mutableStateListOf<Int>() }
     val state = remember(round) { BuilderState(listOf(pool.drawNumber(), pool.drawOperator())) }
 
+    val appCtx = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    // The last five seconds: a tick and a tiny buzz each second.
+    LaunchedEffect(secondsLeft, phase) {
+        if (phase == SoloPhase.Playing && secondsLeft in 1..5) { com.bumbaiya.lanplay.platform.Sfx.tick(); com.bumbaiya.lanplay.platform.Feedback.tickBuzz(appCtx) }
+    }
     LaunchedEffect(phase, round) {
         if (phase == SoloPhase.Playing) {
             secondsLeft = ROUND_SECONDS
             while (secondsLeft > 0) { delay(1000.milliseconds); secondsLeft-- }
-            best = maxOf(best, score); phase = SoloPhase.Over
+            best = maxOf(best, score); lastTarget = targetDigits.joinToString(""); phase = SoloPhase.Lost
         }
     }
 
@@ -96,7 +103,7 @@ fun SoloScreen(onBack: () -> Unit) {
                             Hand(digits = cards.filter { it.kind == CardKind.Number }.map { it.glyph.toInt() }, operators = cards.mapNotNull { it.op })
                         },
                         target = target, actionsHeight = 54.dp,
-                        onHit = { score++; lastTarget = targetDigits.joinToString(""); targetDigits.clear(); round++; phase = SoloPhase.Setup },
+                        onHit = { score++; best = maxOf(best, score); tookSeconds = ROUND_SECONDS - secondsLeft; lastTarget = targetDigits.joinToString(""); phase = SoloPhase.Won },
                         actions = { submit, _, locked ->
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
                                 ChunkButton("Draw number", { state.addToHand(pool.drawNumber()) }, fill = Teal, icon = DI.DrawCard, fontSize = 13.sp, padding = 14.dp)
@@ -106,34 +113,52 @@ fun SoloScreen(onBack: () -> Unit) {
                         },
                     )
                 }
-                SoloPhase.Over -> Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Chunk(Modifier.width(290.dp).fillMaxHeight(), fill = Amber, radius = 18.dp, shadow = 5.dp) {
-                        Column(Modifier.fillMaxSize().padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                            WinnerArt(Modifier.weight(1f).fillMaxWidth())
-                            Text("You won!", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 28.sp, color = Ink)
-                            Text("Time's up. Nice run.", fontFamily = Inter, fontSize = 12.sp, color = Ink)
-                        }
-                    }
-                    Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Panel(Modifier.weight(1f).fillMaxWidth(), padding = 16.dp, contentAlignment = Alignment.CenterStart) {
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                CapsLabel("Your run")
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    TargetBox("$score", scale = 1.3f)
-                                    Text("target${if (score == 1) "" else "s"} hit", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink)
-                                }
-                                RunRow("Time", "$ROUND_SECONDS s")
-                                RunRow("Last target", lastTarget.ifEmpty { "none" })
-                                RunRow("Best run", "$best target${if (best == 1) "" else "s"}")
-                            }
-                        }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
-                            ChunkButton("Back to menu", onBack, fill = Sand)
-                            ChunkButton("Play again", { score = 0; lastTarget = ""; targetDigits.clear(); round++; phase = SoloPhase.Setup }, icon = DI.Play)
-                        }
-                    }
-                }
+                SoloPhase.Won -> ResultScreen(
+                    won = true, title = "You won!", line = "You hit $lastTarget in $tookSeconds s.",
+                    big = "$score", bigLabel = "target${if (score == 1) "" else "s"} hit",
+                    rows = listOf("Target" to lastTarget, "Time taken" to "$tookSeconds s", "Best run" to "$best target${if (best == 1) "" else "s"}"),
+                    onBack = onBack, againLabel = "Next target",
+                    onAgain = { targetDigits.clear(); round++; phase = SoloPhase.Setup },
+                )
+                SoloPhase.Lost -> ResultScreen(
+                    won = false, title = "You lost", line = "Time ran out before you hit the target.",
+                    big = "$score", bigLabel = "target${if (score == 1) "" else "s"} hit",
+                    rows = listOf("Time" to "$ROUND_SECONDS s", "Missed target" to lastTarget.ifEmpty { "none" }, "Best run" to "$best target${if (best == 1) "" else "s"}"),
+                    onBack = onBack, againLabel = "Play again",
+                    onAgain = { score = 0; lastTarget = ""; targetDigits.clear(); round++; phase = SoloPhase.Setup },
+                )
             }
+        }
+    }
+}
+
+/** The end-of-target card: art and verdict on the left, the numbers and two buttons on the right. */
+@Composable
+private fun ColumnScope.ResultScreen(
+    won: Boolean, title: String, line: String, big: String, bigLabel: String, rows: List<Pair<String, String>>,
+    onBack: () -> Unit, againLabel: String, onAgain: () -> Unit,
+) = Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+    Chunk(Modifier.width(290.dp).fillMaxHeight(), fill = if (won) Amber else Rose, radius = 18.dp, shadow = 5.dp) {
+        Column(Modifier.fillMaxSize().padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            if (won) WinnerArt(Modifier.weight(1f).fillMaxWidth()) else LoserArt(Modifier.weight(1f).fillMaxWidth())
+            Text(title, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 28.sp, color = Ink)
+            Text(line, fontFamily = Inter, fontSize = 12.sp, color = Ink, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        }
+    }
+    Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Panel(Modifier.weight(1f).fillMaxWidth(), padding = 16.dp, contentAlignment = Alignment.CenterStart) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                CapsLabel("Your run")
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TargetBox(big, scale = 1.3f)
+                    Text(bigLabel, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink)
+                }
+                rows.forEach { (k, v) -> RunRow(k, v) }
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
+            ChunkButton("Back to menu", onBack, fill = Sand)
+            ChunkButton(againLabel, onAgain, icon = DI.Play)
         }
     }
 }

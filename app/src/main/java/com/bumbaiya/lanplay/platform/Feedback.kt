@@ -21,5 +21,16 @@ object Feedback {
             v.vibrate(android.os.VibrationEffect.createWaveform(longArrayOf(0, 220, 90, 220), -1))
         }
     }
+    /** A very short buzz paired with the last-seconds tick. */
+    @Suppress("DEPRECATION")
+    fun tickBuzz(context: android.content.Context) {
+        if (!Session.settings.haptics.value) return
+        runCatching {
+            val v = if (android.os.Build.VERSION.SDK_INT >= 31)
+                (context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
+            else context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+            v.vibrate(android.os.VibrationEffect.createOneShot(35, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+        }
+    }
     fun draw() = beep(ToneGenerator.TONE_PROP_BEEP, 80)
 }
