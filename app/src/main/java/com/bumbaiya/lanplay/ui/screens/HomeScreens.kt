@@ -79,10 +79,6 @@ fun GamesScreen(onOpen: () -> Unit, onSettings: () -> Unit) {
                     Column(Modifier.fillMaxSize()) {
                         Row(Modifier.fillMaxWidth().height(26.dp).background(Color(0x26241C18)).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text("2 to 6 players", fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Ink)
-                            Spacer(Modifier.weight(1f))
-                            Box(Modifier.background(Color.White, RoundedCornerShape(8.dp)).padding(horizontal = 9.dp, vertical = 2.dp)) {
-                                Text("PLAY", fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 10.sp, letterSpacing = 1.sp, color = Ink)
-                            }
                         }
                         CombineArt(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 6.dp))
                         Column(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp)) {
