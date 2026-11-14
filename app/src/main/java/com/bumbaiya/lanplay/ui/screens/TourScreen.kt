@@ -38,6 +38,7 @@ private val Steps = listOf(
     TourStep("Make 12", "Tap cards to add them to your row, then Submit.", true),
     TourStep("Power up", "Hold a number over another for a power. Every answer still needs an operator, so add + 0. Make 64!", true),
     TourStep("Σ and Π", "Π multiplies the numbers after it. Add Π, then 2, 3 and 4. Make 24!", true),
+    TourStep("The ★ wild card", "A ★ card can be any operator. Tap it to cycle through them. Tap it until it shows ×.", true),
     TourStep("DHAPPA!", "Someone passed? Catch them! Build the target from their cards. Right: +3 points. Wrong: you're out!", false),
     TourStep("You're ready!", "Grab your friends and play!", false),
 )
@@ -91,7 +92,8 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
                                 3 -> Practice(listOf(num(1, "3"), num(2, "4"), plus(3)), 12, "Tap the + in your row to flip it to ×.") { done = true }
                                 4 -> Practice(listOf(num(1, "4"), num(2, "3"), num(3, "0"), plus(4)), 64, "Drag the 3 onto the 4, then tap + and 0.") { done = true }
                                 5 -> Practice(listOf(num(1, "2"), num(2, "3"), num(3, "4"), BCard(4, "Π", CardKind.Operator, op = Op.Pi)), 24, "Tap Π, then 2, 3 and 4.") { done = true }
-                                6 -> {
+                                6 -> WildPractice { done = true }
+                                7 -> {
                                     CapsLabel("Dev's cards")
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         DeckCard("8", CardKind.Number, size = DeckCardSize.Large); DeckCard("2", CardKind.Number, size = DeckCardSize.Large)
@@ -148,6 +150,13 @@ private fun TiltPractice(onDone: () -> Unit) {
     var card by remember { mutableStateOf(plus(0)) }
     LaunchedEffect(card.glyph) { if (card.glyph == "×") onDone() }
     DeckCard(card.glyph, CardKind.Operator, altGlyph = card.alt, size = DeckCardSize.Large, scale = 1.5f, onClick = { card = card.tilted() })
+}
+
+@Composable
+private fun WildPractice(onDone: () -> Unit) {
+    var card by remember { mutableStateOf(BCard(0, "*", CardKind.Operator, op = Op.Wild, wild = true)) }
+    LaunchedEffect(card.glyph) { if (card.glyph == "×") onDone() }
+    DeckCard(card.glyph, CardKind.Operator, isWild = true, size = DeckCardSize.Large, scale = 1.5f, onClick = { card = card.tilted() })
 }
 
 @Composable

@@ -76,10 +76,13 @@ fun DeckCard(
     scale: Float = 1f,
     dimmed: Boolean = false,
     altGlyph: String? = null,
+    /** A wild card keeps a star in the corner even after it has been set to an operator. */
+    isWild: Boolean = false,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
 ) {
     val wild = glyph == "*"
+    val starBadge = isWild && !wild
     val ink = when { wild -> Amber.copy(red = 0.55f, green = 0.36f, blue = 0.0f); kind == CardKind.Number -> TealDark; else -> Terra }
     val shown = if (wild) "★" else glyph
     val small = size == DeckCardSize.Small
@@ -129,6 +132,12 @@ fun DeckCard(
             contentAlignment = Alignment.Center,
         ) {
             Text(shown, color = ink, fontFamily = Baloo, fontSize = glyphSize, fontWeight = FontWeight.Bold)
+            if (starBadge) {
+                Text(
+                    "★", color = Amber.copy(red = 0.55f, green = 0.36f, blue = 0.0f), fontFamily = Baloo, fontSize = (if (small) 9.sp else 13.sp) * scale, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(end = 4.dp * scale, top = 1.dp),
+                )
+            }
             if (altGlyph != null) {
                 Text(
                     altGlyph, color = Muted, fontFamily = Baloo, fontSize = (if (small) 9.sp else 13.sp) * scale, fontWeight = FontWeight.Bold,

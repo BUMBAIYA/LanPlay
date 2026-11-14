@@ -180,7 +180,7 @@ fun ExpressionBuilder(
                         ) {
                             val c = slot.card
                             DeckCard(
-                                glyph = c.glyph, altGlyph = c.alt, kind = c.kind, size = if (proof) DeckCardSize.Proof else DeckCardSize.Row, scale = stripScale,
+                                glyph = c.glyph, altGlyph = c.alt, isWild = c.wild, kind = c.kind, size = if (proof) DeckCardSize.Proof else DeckCardSize.Row, scale = stripScale,
                                 onClick = { if (c.canTilt) state.tiltInSlot(index) else state.returnToHand(index) },
                                 onLongClick = { state.returnToHand(index) },
                             )
@@ -238,7 +238,7 @@ fun ExpressionBuilder(
         // The card being dragged floats above everything, following the finger.
         drag?.let { d ->
             Box(Modifier.offset { IntOffset((d.topLeft.x - origin.x).roundToInt(), (d.topLeft.y - origin.y).roundToInt()) }) {
-                DeckCard(d.card.glyph, d.card.kind, altGlyph = d.card.alt, scale = handScale)
+                DeckCard(d.card.glyph, d.card.kind, altGlyph = d.card.alt, isWild = d.card.wild, scale = handScale)
             }
         }
     }
@@ -256,7 +256,7 @@ private fun CardRow(
             cards.forEach { card ->
                 if (state.isUsed(card)) {
                     // Used cards stay in place but faded; tap one to take it back.
-                    DeckCard(card.glyph, card.kind, altGlyph = card.alt, size = size, scale = scale, dimmed = true, onClick = { state.giveBack(card) })
+                    DeckCard(card.glyph, card.kind, altGlyph = card.alt, isWild = card.wild, size = size, scale = scale, dimmed = true, onClick = { state.giveBack(card) })
                 } else HandCard(card, drag, state, setDrag, onDrop, reportSize, size, scale)
             }
         }
@@ -294,7 +294,7 @@ private fun HandCard(
     ) {
         // While dragging, the hand shows the card faded where it came from.
         DeckCard(
-            glyph = card.glyph, altGlyph = card.alt, kind = card.kind, size = size, scale = scale, dimmed = isDragged,
+            glyph = card.glyph, altGlyph = card.alt, isWild = card.wild, kind = card.kind, size = size, scale = scale, dimmed = isDragged,
             onClick = { state.addSlot(card) },
         )
     }

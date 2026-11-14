@@ -253,7 +253,7 @@ private fun ColumnScope.PeekPanel(name: String, index: Int, score: Int, last: co
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().heightIn(min = 80.dp)) {
                 val fit = fitScale(cards.size, DeckCardSize.Large.width, DeckCardSize.Large.height, 8.dp, maxWidth, maxHeight, maxScale = 1.2f)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    cards.forEach { c -> DeckCard(c.glyph, c.kind, altGlyph = c.alt, size = DeckCardSize.Large, scale = fit, dimmed = out) }
+                    cards.forEach { c -> DeckCard(c.glyph, c.kind, altGlyph = c.alt, isWild = c.glyph == "*", size = DeckCardSize.Large, scale = fit, dimmed = out) }
                 }
             }
             if (last != null) {
@@ -307,7 +307,7 @@ private fun ColumnScope.MyTurn(client: GameClient, state: GameState, phase: Phas
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
             val fit = fitScale(myCards.size.coerceAtLeast(1), DeckCardSize.Medium.width, DeckCardSize.Medium.height, 8.dp, maxWidth, maxHeight, maxScale = 1.2f)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                myCards.forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, altGlyph = b.alt, size = DeckCardSize.Medium, scale = fit, dimmed = true) }
+                myCards.forEach { c -> val b = c.toBCard(); DeckCard(b.glyph, b.kind, altGlyph = b.alt, isWild = b.wild, size = DeckCardSize.Medium, scale = fit, dimmed = true) }
             }
         }
         return
