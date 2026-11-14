@@ -52,7 +52,6 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     val phase = state.phase
     // The clock only changes once per second as far as the screen is concerned.
     val now by produceState((client.serverNow() / 1000) * 1000) { while (true) { value = (client.serverNow() / 1000) * 1000; delay(200.milliseconds) } }
-    var confirmLeave by remember { mutableStateOf(false) }
     var showStandings by remember { mutableStateOf(false) }
     var catching by remember { mutableStateOf<String?>(null) }
     var shownId by remember { mutableStateOf<String?>(null) }
@@ -83,10 +82,10 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     Box(Modifier.fillMaxSize().graphicsLayer { translationX = shake.value }) {
         Frame(cards = true) {
             when {
-                phase is Phase.RoundEnd || phase is Phase.Finished -> ScoresView(client, state, myId, isAdmin, startScores, onLeave = { confirmLeave = true })
+                phase is Phase.RoundEnd || phase is Phase.Finished -> ScoresView(client, state, myId, isAdmin, startScores, onLeave = onLeave)
                 victim != null && phase is Phase.Turns -> CatchView(client, state, victim.id, victim.name, now) { catching = null }
                 else -> Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TableHeader(state, phase, now, myId, sound, onLeave = { confirmLeave = true }, onSound = { Session.settings.setSound(!sound) }, onStandings = { showStandings = true })
+                    TableHeader(state, phase, now, myId, sound, onLeave = onLeave, onSound = { Session.settings.setSound(!sound) }, onStandings = { showStandings = true })
                     Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         OpponentRail(state, currentId, now, myId, iAmOut, shownId, onCatch = { catching = it }, onShow = { shownId = if (shownId == it) null else it }, modifier = Modifier.width(150.dp))
                         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -105,16 +104,6 @@ fun TableScreen(client: GameClient, state: GameState, onLeave: () -> Unit) {
     }
 
     if (showStandings) StandingsModal(state, myId) { showStandings = false }
-    if (confirmLeave) ModalCard({ confirmLeave = false }) {
-        Column(Modifier.width(300.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Leave the game?", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Ink)
-            Text(if (isAdmin) "You are the host. Leaving ends the game for everyone." else "You can rejoin using the room ID until the next round starts.", fontFamily = Inter, fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
-                ChunkButton("Stay", { confirmLeave = false }, fill = Sand, icon = DI.Check, height = 42.dp)
-                ChunkButton("Leave", { confirmLeave = false; onLeave() }, fill = Rose, icon = DI.Close, height = 42.dp)
-            }
-        }
-    }
 }
 
 /** A stamp that lands on the screen when someone is caught. */

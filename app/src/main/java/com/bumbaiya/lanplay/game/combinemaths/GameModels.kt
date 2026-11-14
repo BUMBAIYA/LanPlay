@@ -108,6 +108,8 @@ sealed interface Intent {
     @Serializable @SerialName("catch") data class Catch(val targetId: String, val expression: String) : Intent
     @Serializable @SerialName("nextRound") data object NextRound : Intent
     @Serializable @SerialName("lobby") data object BackToLobby : Intent
+    /** A player chose to leave. They cannot come back to this game. */
+    @Serializable @SerialName("leave") data object Leave : Intent
     /** Admin only: remove a player from the room. */
     @Serializable @SerialName("kick") data class Kick(val playerId: String) : Intent
 }

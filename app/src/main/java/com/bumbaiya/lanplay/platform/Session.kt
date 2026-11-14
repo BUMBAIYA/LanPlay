@@ -109,6 +109,14 @@ object Session {
         }
     }
 
+    /** A deliberate exit: tell the host first so this player cannot rejoin, then drop everything. */
+    fun leaveGame() {
+        val c = _client.value
+        if (c == null || server != null) { leave(); return }
+        c.send(com.bumbaiya.lanplay.game.combinemaths.Intent.Leave)
+        scope.launch { kotlinx.coroutines.delay(300); leave() }
+    }
+
     fun leave() {
         _client.value?.close(); _client.value = null
         server?.stop(); server = null

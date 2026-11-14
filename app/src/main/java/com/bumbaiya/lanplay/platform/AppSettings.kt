@@ -23,7 +23,7 @@ class AppSettings(context: Context) {
     /** Tablets only: play in portrait instead of landscape. Phones are always landscape. */
     val portrait: StateFlow<Boolean> = _portrait
 
-    fun setName(v: String) { _name.value = v; prefs.edit { putString("name", v) } }
+    fun setName(v: String) { val n = com.bumbaiya.lanplay.game.combinemaths.PlayerName.clean(v); _name.value = n; prefs.edit { putString("name", n) } }
     fun setTheme(v: ThemeMode) { _theme.value = v; prefs.edit { putString("theme", v.name) } }
     fun setSound(v: Boolean) { _sound.value = v; prefs.edit { putBoolean("sound", v) } }
     fun setPortrait(v: Boolean) { _portrait.value = v; prefs.edit { putBoolean("portrait", v) } }

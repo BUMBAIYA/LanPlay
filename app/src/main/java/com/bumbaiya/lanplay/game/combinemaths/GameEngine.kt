@@ -23,7 +23,8 @@ class GameEngine(private val random: Random = Random.Default) {
         if (s.phase != Phase.Lobby) return Outcome.Rejected("The game has already started")
         if (s.players.any { it.id == id }) return Outcome.Ok(s)
         if (s.players.size >= MAX_PLAYERS) return Outcome.Rejected("The room is full")
-        return ok(s.copy(players = s.players + Player(id, name.ifBlank { "Player" }), notice = "$name joined"))
+        val clean = PlayerName.clean(name).ifBlank { "Player" }
+        return ok(s.copy(players = s.players + Player(id, clean), notice = "$clean joined"))
     }
 
     fun removePlayer(s: GameState, id: String, now: Long): GameState {
@@ -57,6 +58,7 @@ class GameEngine(private val random: Random = Random.Default) {
                 live.player(intent.playerId) == null -> Outcome.Rejected("That player is not in the room")
                 else -> ok(removePlayer(live, intent.playerId, now).let { if (live.phase == Phase.Lobby) it else it.copy(players = it.players.filterNot { p -> p.id == intent.playerId }) })
             }
+            Intent.Leave -> ok(removePlayer(live, playerId, now))
             is Intent.SetReady -> inLobby(live) { ok(it.copy(players = it.players.map { p -> if (p.id == playerId) p.copy(ready = intent.ready) else p })) }
             is Intent.UpdateSettings -> inLobby(live) {
                 if (playerId != it.adminId) Outcome.Rejected("Only the admin can change settings")

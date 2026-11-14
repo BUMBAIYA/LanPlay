@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.bumbaiya.lanplay.ui.theme.Cream
 
 /** Player names are at most this long, everywhere. */
-const val NameMax = 15
+const val NameMax = com.bumbaiya.lanplay.game.combinemaths.PlayerName.MAX
 
 /** The system-bar / camera cut-out insets. Screens draw their background edge to edge and pad their content by this. */
 val LocalSafePadding = compositionLocalOf { PaddingValues(0.dp) }

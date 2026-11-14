@@ -200,7 +200,7 @@ fun InkField(
 ) {
     val shape = RoundedCornerShape(12.dp)
     BasicTextField(
-        value = value, onValueChange = { if (it.length <= maxLength) onChange(it) }, singleLine = true,
+        value = value, onValueChange = { onChange(it.take(maxLength)) }, singleLine = true,
         keyboardOptions = keyboardOptions, keyboardActions = keyboardActions,
         textStyle = TextStyle(color = Ink, fontSize = fontSize, fontFamily = Inter, fontWeight = FontWeight.SemiBold, textAlign = if (center) androidx.compose.ui.text.style.TextAlign.Center else androidx.compose.ui.text.style.TextAlign.Start),
         cursorBrush = SolidColor(Ink),

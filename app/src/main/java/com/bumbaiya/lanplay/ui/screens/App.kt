@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,6 +33,7 @@ import com.bumbaiya.lanplay.net.GameClient
 import com.bumbaiya.lanplay.platform.Session
 import com.bumbaiya.lanplay.ui.components.Chip
 import com.bumbaiya.lanplay.ui.components.ChunkButton
+import com.bumbaiya.lanplay.ui.components.DI
 import com.bumbaiya.lanplay.ui.components.Frame
 import com.bumbaiya.lanplay.ui.components.Header
 import com.bumbaiya.lanplay.ui.components.StateArt
@@ -63,7 +65,6 @@ fun LanPlayApp() {
             else -> Screen.Games
         }
     }
-    BackHandler(enabled = inGame) { Session.leave() }
 
     val c = client
     if (c != null) { GameFlow(c); return }
@@ -87,6 +88,10 @@ private fun GameFlow(client: GameClient) {
     val status by client.status.collectAsState()
     val s = state
     val context = LocalContext.current
+    var confirmLeave by remember { mutableStateOf(false) }
+    val asking = { if (s != null && status !is ConnectionStatus.Failed) confirmLeave = true else Session.leave() }
+    BackHandler { asking() }
+    if (confirmLeave && s != null) LeaveModal(isHost = client.myId.value == s.adminId, onStay = { confirmLeave = false }, onLeave = { confirmLeave = false; Session.leaveGame() })
     LaunchedEffect(client) {
         client.messages.collect { android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show() }
     }
@@ -97,8 +102,8 @@ private fun GameFlow(client: GameClient) {
             else StateScreen(StateArtKind.Disconnected, "The host left the game", "$reason. The room has closed.", listOf("Room closed" to Rose), "Back to home" to { Session.leave() })
         }
         s == null -> ConnectingScreen(status)
-        s.phase == Phase.Lobby -> LobbyScreen(client, s, onLeave = { Session.leave() })
-        else -> TableScreen(client, s, onLeave = { Session.leave() })
+        s.phase == Phase.Lobby -> LobbyScreen(client, s, onLeave = asking)
+        else -> TableScreen(client, s, onLeave = asking)
     }
     if (s != null && status is ConnectionStatus.Reconnecting) {
         Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.TopCenter) {
@@ -153,4 +158,20 @@ private fun ConnectingScreen(status: ConnectionStatus) {
         StateArtKind.Failed, "Couldn't join the room", "Check you are on the same Wi-Fi or hotspot as the host, and that the room code is right.", chips,
         "Try again" to { Session.retryJoin() }, "Change code" to { Session.leave() }, primaryFill = Teal,
     )
+}
+
+@Composable
+private fun LeaveModal(isHost: Boolean, onStay: () -> Unit, onLeave: () -> Unit) = ModalCard(onStay) {
+    Column(Modifier.width(300.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("Leave the game?", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Ink)
+        Text(
+            if (isHost) "You are the host. Leaving closes the room for everyone."
+            else "Are you sure you want to leave? If you leave on purpose you cannot join this game again. If you only lose connection, you can rejoin.",
+            fontFamily = Inter, fontSize = 12.sp, lineHeight = 16.sp, color = Muted,
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
+            ChunkButton("Stay", onStay, fill = Sand, icon = DI.Check, height = 42.dp)
+            ChunkButton("Leave", onLeave, fill = Rose, icon = DI.Close, height = 42.dp)
+        }
+    }
 }

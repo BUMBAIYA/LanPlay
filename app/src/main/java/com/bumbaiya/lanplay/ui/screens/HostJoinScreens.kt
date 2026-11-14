@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bumbaiya.lanplay.game.combinemaths.PlayerName
 import com.bumbaiya.lanplay.net.JoinLink
 import com.bumbaiya.lanplay.platform.QrCode
 import com.bumbaiya.lanplay.platform.Session
@@ -82,7 +83,8 @@ fun HostScreen(onBack: () -> Unit) {
                 Panel(Modifier.weight(1f).fillMaxHeight(), padding = 16.dp) {
                     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         CapsLabel("Your name in this room", color = Ink)
-                        InkField(name, { name = it }, Modifier.fillMaxWidth(), maxLength = NameMax, height = 44.dp, placeholder = "Your name")
+                        InkField(name, { name = PlayerName.clean(it) }, Modifier.fillMaxWidth(), maxLength = NameMax, height = 44.dp, placeholder = "Your name")
+                        Text("Letters only, up to $NameMax. No numbers, spaces or symbols.", fontFamily = Inter, fontSize = 10.sp, color = Muted)
                         CapsLabel("Connection", color = Ink)
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Chunk(Modifier.weight(1f).height(56.dp), fill = Teal, radius = 12.dp, border = 2.dp, shadow = 3.dp) {
@@ -183,7 +185,7 @@ fun JoinScreen(onBack: () -> Unit) {
                             )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            InkField(name, { name = it }, Modifier.weight(1f), label = "Name", maxLength = NameMax, height = 42.dp, fontSize = 13.sp)
+                            InkField(name, { name = PlayerName.clean(it) }, Modifier.weight(1f), label = "Name", maxLength = NameMax, height = 42.dp, fontSize = 13.sp)
                             Chunk(Modifier.height(42.dp), onClick = ::scan, fill = Ink, radius = 12.dp, border = 2.dp, shadow = 3.dp, contentAlignment = Alignment.Center) {
                                 Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     DIcon(DI.Scan, tint = Color.White, size = 15.dp)

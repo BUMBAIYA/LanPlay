@@ -47,6 +47,7 @@ class HostServer(
     private val sessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>()
     private val seatTokens = ConcurrentHashMap<String, String>() // token -> playerId
     private val removedIds = ConcurrentHashMap.newKeySet<String>() // kicked players cannot reclaim their seat
+    private val leftIds = ConcurrentHashMap.newKeySet<String>() // players who left on purpose cannot come back
     private var server: io.ktor.server.engine.EmbeddedServer<*, *>? = null
 
     private val _state = MutableStateFlow<GameState?>(null)
@@ -105,6 +106,7 @@ class HostServer(
             return null
         }
         val knownId = msg.seatToken?.let { seatTokens[it] }
+        if (knownId != null && knownId in leftIds) { reject(session, "You left this game and cannot rejoin"); return null }
         if (knownId != null && knownId in removedIds) { reject(session, "The host removed you from this room"); return null }
         var current = _state.value
         val id: String
@@ -134,6 +136,12 @@ class HostServer(
         val s = _state.value ?: return@withLock
         when (val o = engine.apply(s, id, msg.intent, clock())) {
             is Outcome.Ok -> {
+                if (msg.intent == Intent.Leave) {
+                    leftIds.add(id); sessions.remove(id)
+                    publish(o.state)
+                    runCatching { session.close() }
+                    return@withLock
+                }
                 val kicked = (msg.intent as? Intent.Kick)?.playerId
                 val kickedSession = kicked?.let { removedIds.add(it); sessions.remove(it) }
                 publish(o.state)

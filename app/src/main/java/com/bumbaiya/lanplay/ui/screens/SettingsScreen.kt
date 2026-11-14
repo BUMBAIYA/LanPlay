@@ -85,7 +85,7 @@ fun SettingsScreen(onBack: () -> Unit, onCredits: () -> Unit) {
                                 Avatar(name.ifBlank { "?" }, Teal, 46.dp)
                                 InkField(name, { settings.setName(it) }, Modifier.weight(1f), maxLength = NameMax, height = 46.dp, placeholder = "Your name")
                             }
-                            Text("Used for every room you host or join.", fontFamily = Inter, fontSize = 11.sp, color = Muted)
+                            Text("Used for every room you host or join. Letters only, up to $NameMax.", fontFamily = Inter, fontSize = 11.sp, color = Muted)
                         }
                     }
                     Panel(Modifier.fillMaxWidth().weight(1f), padding = 14.dp) {
