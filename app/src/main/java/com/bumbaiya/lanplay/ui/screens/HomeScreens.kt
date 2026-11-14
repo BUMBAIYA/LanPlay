@@ -114,11 +114,13 @@ fun GameMenuScreen(onBack: () -> Unit, onSolo: () -> Unit, onHost: () -> Unit, o
                 Column(Modifier.width(224.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Header("", onBack, subtitle = null, trailing = {}, modifier = Modifier.height(44.dp))
                     Chunk(Modifier.fillMaxWidth().weight(1f), fill = Amber, radius = 18.dp, shadow = 5.dp) {
-                        Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.Bottom) {
-                            Text("Combine", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 26.sp, color = Ink)
-                            Text("Combine number and operator cards to hit the target. Spot a player who missed it and catch them.", Modifier.padding(top = 4.dp), fontFamily = Inter, fontSize = 11.sp, lineHeight = 15.sp, color = Ink.copy(alpha = 0.85f))
+                        Column(Modifier.fillMaxSize()) {
+                            Box(Modifier.weight(1f).fillMaxWidth()) { CombineArt(Modifier.fillMaxSize(), listOf("6", "×", "7", "+")) }
+                            Column(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp)) {
+                                Text("Combine", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 26.sp, color = Ink)
+                                Text("Combine number and operator cards to hit the target. Spot a player who missed it and catch them.", Modifier.padding(top = 4.dp), fontFamily = Inter, fontSize = 11.sp, lineHeight = 15.sp, color = Ink.copy(alpha = 0.85f))
+                            }
                         }
-                        CombineArt(Modifier.fillMaxWidth().height(150.dp), listOf("6", "×", "7", "+"))
                     }
                 }
                 Spacer(Modifier.width(14.dp))
