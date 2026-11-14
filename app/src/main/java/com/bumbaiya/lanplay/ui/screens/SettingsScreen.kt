@@ -77,7 +77,7 @@ fun SettingsScreen(onBack: () -> Unit, onCredits: () -> Unit) {
             Header("Settings", onBack, subtitle = "This device only", lead = { Box(Modifier.size(44.dp)) { GearArt(Modifier.fillMaxSize()) } }, trailing = {
                 Chunk(Modifier.height(44.dp), onClick = onCredits, fill = Amber, radius = 14.dp, shadow = 4.dp, contentAlignment = Alignment.Center) {
                     Row(Modifier.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        DIcon(DI.Heart, tint = Rose, size = 16.dp)
+                        DIcon(DI.HeartFilled, tint = Rose, size = 16.dp)
                         Text("Credits", fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Ink)
                     }
                 }

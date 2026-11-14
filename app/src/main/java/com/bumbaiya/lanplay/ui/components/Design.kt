@@ -41,11 +41,11 @@ private fun circle(cx: Float, cy: Float, r: Float) = "M${cx - r} ${cy}a$r $r 0 1
 private fun rect(x: Float, y: Float, w: Float, h: Float, r: Float) =
     "M${x + r} ${y}h${w - 2 * r}a$r $r 0 0 1 $r $r" + "v${h - 2 * r}a$r $r 0 0 1 ${-r} $r" + "h${-(w - 2 * r)}a$r $r 0 0 1 ${-r} ${-r}" + "v${-(h - 2 * r)}a$r $r 0 0 1 $r ${-r}z"
 
-private fun icon(name: String, stroke: Float, vararg paths: String, size: Float = 24f) =
+private fun icon(name: String, stroke: Float, vararg paths: String, size: Float = 24f, filled: Boolean = false) =
     ImageVector.Builder(name, 24.dp, 24.dp, size, size).apply {
         paths.forEach {
             addPath(
-                pathData = PathParser().parsePathString(it).toNodes(), stroke = SolidColor(Color.Black), strokeLineWidth = stroke,
+                pathData = PathParser().parsePathString(it).toNodes(), fill = if (filled) SolidColor(Color.Black) else null, stroke = SolidColor(Color.Black), strokeLineWidth = stroke,
                 strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round,
             )
         }
@@ -75,6 +75,7 @@ object DI {
     /** The LanPlay mark: radio waves, on a 32 grid. */
     val Trophy = icon("trophy", 2.25f, "M8 4h8v5a4 4 0 0 1-8 0z", "M8 5H4v2a3 3 0 0 0 4 3M16 5h4v2a3 3 0 0 1-4 3M12 13v4M8 20h8")
     val Heart = icon("heart", 2.25f, "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10z")
+    val HeartFilled = icon("heartFilled", 2f, "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10z", filled = true)
     val Eye = icon("eye", 2.25f, "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z", circle(12f, 12f, 3f))
     val Minus = icon("minus", 3f, "M6 12h12")
     val Plus = icon("plus", 3f, "M6 12h12M12 6v12")

@@ -100,7 +100,14 @@ fun TourScreen(onBack: () -> Unit, onFullRules: () -> Unit) {
                                     Spacer(Modifier.height(10.dp))
                                     ChunkButton("DHAPPA!", {}, fill = Rose)
                                 }
-                                else -> Box(Modifier.fillMaxSize()) { SparkleArt(Modifier.fillMaxSize()); Box(Modifier.align(Alignment.Center)) { LogoMark(Modifier.size(96.dp)) } }
+                                else -> {
+                                    // The game's own name, spelled out in cards.
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        "COMBINE".forEachIndexed { i, c -> DeckCard(c.toString(), if (i % 2 == 0) CardKind.Number else CardKind.Operator, size = DeckCardSize.Large) }
+                                    }
+                                    Spacer(Modifier.height(10.dp))
+                                    Text("Grab your friends and play!", fontFamily = Inter, fontSize = 11.sp, color = Muted)
+                                }
                             }
                         }
                     }
