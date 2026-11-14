@@ -27,9 +27,12 @@ import androidx.compose.ui.unit.sp
  * sideways the content stays a comfortable 600dp wide and centred. It scrolls, so small screens
  * and big text sizes never cut anything off.
  */
+/** The system-bar / camera cut-out insets. Screens draw their background edge to edge and pad their content by this. */
+val LocalSafePadding = androidx.compose.runtime.compositionLocalOf { androidx.compose.foundation.layout.PaddingValues(0.dp) }
+
 @Composable
 fun ScreenColumn(modifier: Modifier = Modifier, gap: androidx.compose.ui.unit.Dp = 16.dp, content: @Composable ColumnScope.() -> Unit) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+    Box(Modifier.fillMaxSize().padding(LocalSafePadding.current), contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = modifier
                 .widthIn(max = 600.dp)

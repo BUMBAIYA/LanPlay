@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -142,7 +144,7 @@ fun ExpressionBuilder(
         // A short expression leaves most of the room to the hand; a long one splits it evenly.
         val handBudget = if (state.slots.size <= 4) cardsBudget - 84.dp else cardsBudget * 0.5f - 2.dp
         val handScale = fitScale(ownedCount.coerceAtLeast(1), DeckCardSize.Medium.width, DeckCardSize.Medium.height, 8.dp, maxWidth, handBudget.coerceAtLeast(60.dp), maxScale = 1.5f)
-        Column(verticalArrangement = Arrangement.spacedBy(if (proof) 8.dp else 6.dp)) {
+        Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(if (proof) 8.dp else 6.dp)) {
             // The victim's cards, when proving a catch.
             if (proof) CardRow(null, colors.numberLabel, state.owned(), state, drag, { drag = it }, { drop(it) }, { cardPx = it },
                 DeckCardSize.Medium, 8.dp, handScale)
@@ -218,6 +220,8 @@ fun ExpressionBuilder(
                 CardRow(null, colors.numberLabel, numbers + operators, state, drag, { drag = it }, { drop(it) }, { cardPx = it }, scale = handScale)
             }
 
+            // Buttons sit at the bottom of the play area, within thumb reach.
+            Spacer(Modifier.weight(1f))
             if (actions != null) actions(::submit, ::clear, locked || !enabled)
             else Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 BigButton(if (locked) "Wait..." else submitLabel, ::submit, Modifier.weight(1f), icon = DI.Check, enabled = !locked && enabled, height = 48.dp)

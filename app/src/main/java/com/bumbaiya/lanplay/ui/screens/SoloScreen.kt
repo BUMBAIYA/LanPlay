@@ -81,7 +81,7 @@ fun SoloScreen(onBack: () -> Unit) {
                 }
             }
             when (phase) {
-                SoloPhase.Setup -> Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                SoloPhase.Setup -> Row(Modifier.fillMaxWidth().weight(1f).padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Bottom) {
                     BigButton("Draw card", { targetDigits.add(pool.randomDigit()) }, Modifier.weight(1f), icon = DI.DrawCard, primary = false, enabled = targetDigits.size < 3, height = 52.dp, fontSize = 16)
                     BigButton("Random", {
                         targetDigits.clear()
@@ -92,7 +92,7 @@ fun SoloScreen(onBack: () -> Unit) {
                 SoloPhase.Playing -> {
                     val target = targetDigits.joinToString("").toLong()
                     ExpressionBuilder(
-                        state = state,
+                        state = state, modifier = Modifier.weight(1f),
                         engineHand = {
                             val cards = state.allCards()
                             Hand(

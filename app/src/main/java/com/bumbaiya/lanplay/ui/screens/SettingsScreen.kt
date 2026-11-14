@@ -34,6 +34,8 @@ fun SettingsScreen(onBack: () -> Unit) {
     val theme by settings.theme.collectAsState()
     val sound by settings.sound.collectAsState()
     val haptics by settings.haptics.collectAsState()
+    val portrait by settings.portrait.collectAsState()
+    val isTablet = androidx.compose.ui.platform.LocalConfiguration.current.smallestScreenWidthDp >= 600
     ScreenColumn(gap = 24.dp) {
         Header("Settings", onBack)
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -56,6 +58,22 @@ fun SettingsScreen(onBack: () -> Unit) {
                                 contentColor = if (on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.heightIn(min = 44.dp),
                             ) { Row(Modifier.padding(horizontal = 14.dp).heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) { Text(m.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) } }
+                        }
+                    }
+                }
+            }
+            if (isTablet) Panel(Modifier) {
+                Row(Modifier.heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Screen", fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    Row(Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        listOf(false to "Landscape", true to "Portrait").forEach { (isPortrait, label) ->
+                            val on = portrait == isPortrait
+                            Surface(
+                                onClick = { settings.setPortrait(isPortrait) }, shape = RoundedCornerShape(9.dp),
+                                color = if (on) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
+                                contentColor = if (on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.heightIn(min = 44.dp),
+                            ) { Row(Modifier.padding(horizontal = 14.dp).heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) { Text(label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) } }
                         }
                     }
                 }

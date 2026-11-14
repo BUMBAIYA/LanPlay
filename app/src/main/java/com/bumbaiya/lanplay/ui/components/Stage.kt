@@ -3,6 +3,7 @@ package com.bumbaiya.lanplay.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,7 +22,8 @@ fun Stage(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     LockLandscape()
     LanPlayTheme(ThemeMode.Dark) {
         Box(modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF141A24), Color(0xFF0B0E13))))) {
-            CompositionLocalProvider(LocalContentColor provides Color.White) { content() }
+            GameBackdrop()
+            CompositionLocalProvider(LocalContentColor provides Color.White) { Box(Modifier.fillMaxSize().padding(LocalSafePadding.current)) { content() } }
         }
     }
 }

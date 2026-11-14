@@ -26,9 +26,16 @@ class MainActivity : ComponentActivity() {
         debugJoin(intent)
         setContent {
             val theme by Session.settings.theme.collectAsState()
+            val portrait by Session.settings.portrait.collectAsState()
+            // Phones are landscape only; tablets have room for portrait, so they can switch in Settings.
+            val isTablet = resources.configuration.smallestScreenWidthDp >= 600
+            androidx.compose.runtime.LaunchedEffect(portrait) {
+                requestedOrientation = if (isTablet && portrait) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
             LanPlayTheme(themeMode = theme) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    androidx.compose.foundation.layout.Box(Modifier.padding(innerPadding)) { LanPlayApp() }
+                    androidx.compose.runtime.CompositionLocalProvider(com.bumbaiya.lanplay.ui.components.LocalSafePadding provides innerPadding) { LanPlayApp() }
                 }
             }
         }
