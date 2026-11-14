@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bumbaiya.lanplay.ui.theme.Cream
 
 /** Player names are at most this long, everywhere. */
@@ -29,4 +30,16 @@ fun Frame(cards: Boolean = false, content: @Composable BoxScope.() -> Unit) {
         Backdrop(cards)
         Box(Modifier.fillMaxSize().padding(LocalSafePadding.current).padding(horizontal = 28.dp, vertical = 10.dp), content = content)
     }
+}
+
+/** The line under a name field: the plain rule, or in red which characters can't be used. */
+@Composable
+fun NameHint(raw: String, modifier: Modifier = Modifier) {
+    val problem = com.bumbaiya.lanplay.game.combinemaths.PlayerName.problem(raw)
+    androidx.compose.material3.Text(
+        problem ?: "Letters only, up to $NameMax. No numbers, spaces or symbols.", modifier,
+        fontFamily = com.bumbaiya.lanplay.ui.theme.Inter, fontSize = 10.sp,
+        fontWeight = if (problem != null) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
+        color = if (problem != null) com.bumbaiya.lanplay.ui.theme.Terra else com.bumbaiya.lanplay.ui.theme.Muted,
+    )
 }

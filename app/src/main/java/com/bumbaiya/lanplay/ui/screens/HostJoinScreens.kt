@@ -55,6 +55,7 @@ import com.bumbaiya.lanplay.ui.components.Frame
 import com.bumbaiya.lanplay.ui.components.Header
 import com.bumbaiya.lanplay.ui.components.IconDisc
 import com.bumbaiya.lanplay.ui.components.InkField
+import com.bumbaiya.lanplay.ui.components.NameHint
 import com.bumbaiya.lanplay.ui.components.NameMax
 import com.bumbaiya.lanplay.ui.components.Panel
 import com.bumbaiya.lanplay.ui.theme.Amber
@@ -83,8 +84,8 @@ fun HostScreen(onBack: () -> Unit) {
                 Panel(Modifier.weight(1f).fillMaxHeight(), padding = 16.dp) {
                     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         CapsLabel("Your name in this room", color = Ink)
-                        InkField(name, { name = PlayerName.clean(it) }, Modifier.fillMaxWidth(), maxLength = NameMax, height = 44.dp, placeholder = "Your name")
-                        Text("Letters only, up to $NameMax. No numbers, spaces or symbols.", fontFamily = Inter, fontSize = 10.sp, color = Muted)
+                        InkField(name, { name = it }, Modifier.fillMaxWidth(), maxLength = PlayerName.TYPE_LIMIT, height = 44.dp, placeholder = "Your name")
+                        NameHint(name)
                         CapsLabel("Connection", color = Ink)
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Chunk(Modifier.weight(1f).height(56.dp), fill = Teal, radius = 12.dp, border = 2.dp, shadow = 3.dp) {
@@ -108,7 +109,7 @@ fun HostScreen(onBack: () -> Unit) {
                         }
                         error?.let { Text(it, fontFamily = Inter, fontSize = 11.sp, color = Rose) }
                         Spacer(Modifier.weight(1f))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ChunkButton(if (busy) "Creating room…" else "Create room", { Session.settings.setName(name); Session.host(name) }, icon = DI.Play, enabled = !busy && name.isNotBlank()) }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ChunkButton(if (busy) "Creating room…" else "Create room", { Session.settings.setName(name); Session.host(name) }, icon = DI.Play, enabled = !busy && PlayerName.isValid(name)) }
                     }
                 }
                 Panel(Modifier.weight(1f).fillMaxHeight(), fill = com.bumbaiya.lanplay.ui.theme.PanelBg, padding = 16.dp) {
@@ -159,7 +160,7 @@ fun JoinScreen(onBack: () -> Unit) {
     fun scan() = QrCode.scan(context,
         onResult = { text -> JoinLink.parse(text)?.let(::go) ?: Toast.makeText(context, "That is not a LanPlay QR code", Toast.LENGTH_SHORT).show() },
         onError = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() })
-    val canJoin = !busy && name.isNotBlank() && room.length == 4
+    val canJoin = !busy && PlayerName.isValid(name) && room.length == 4
 
     Frame(cards = true) {
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -185,7 +186,7 @@ fun JoinScreen(onBack: () -> Unit) {
                             )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            InkField(name, { name = PlayerName.clean(it) }, Modifier.weight(1f), label = "Name", maxLength = NameMax, height = 42.dp, fontSize = 13.sp)
+                            InkField(name, { name = it }, Modifier.weight(1f), label = "Name", maxLength = PlayerName.TYPE_LIMIT, height = 42.dp, fontSize = 13.sp)
                             Chunk(Modifier.height(42.dp), onClick = ::scan, fill = Ink, radius = 12.dp, border = 2.dp, shadow = 3.dp, contentAlignment = Alignment.Center) {
                                 Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     DIcon(DI.Scan, tint = Color.White, size = 15.dp)
@@ -193,6 +194,7 @@ fun JoinScreen(onBack: () -> Unit) {
                                 }
                             }
                         }
+                        if (PlayerName.problem(name) != null) NameHint(name)
                         error?.let { Text(it, fontFamily = Inter, fontSize = 11.sp, color = Rose) }
                         Spacer(Modifier.weight(1f))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ChunkButton(if (busy) "Looking for room…" else "Join room", { Session.settings.setName(name); Session.joinByRoom(room, name) }, icon = DI.Check, enabled = canJoin) }

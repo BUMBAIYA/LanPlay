@@ -24,4 +24,12 @@ class PlayerNameTest {
         assertTrue(out is Outcome.Ok)
         assertEquals("BadName", (out as Outcome.Ok).state.players.single().name)
     }
+
+    @Test fun `problem names the characters that are not allowed`() {
+        assertEquals(null, PlayerName.problem("Amit"))
+        assertEquals(null, PlayerName.problem(""))
+        assertEquals("Can't use \"1\", space. Letters only.", PlayerName.problem("A1 t"))
+        assertEquals("Up to 15 letters.", PlayerName.problem("a".repeat(16)))
+        assertEquals(false, PlayerName.isValid("Am it"))
+    }
 }

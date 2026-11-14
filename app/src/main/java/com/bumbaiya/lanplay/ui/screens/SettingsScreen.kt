@@ -43,6 +43,11 @@ import com.bumbaiya.lanplay.ui.components.IconDisc
 import com.bumbaiya.lanplay.ui.components.InkField
 import com.bumbaiya.lanplay.ui.components.LogoMark
 import com.bumbaiya.lanplay.ui.components.NameMax
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import com.bumbaiya.lanplay.ui.components.NameHint
+import com.bumbaiya.lanplay.game.combinemaths.PlayerName
 import com.bumbaiya.lanplay.ui.components.Panel
 import com.bumbaiya.lanplay.ui.components.Segmented
 import com.bumbaiya.lanplay.ui.components.SparkleArt
@@ -62,6 +67,7 @@ import com.bumbaiya.lanplay.ui.theme.Teal
 fun SettingsScreen(onBack: () -> Unit, onCredits: () -> Unit) {
     val settings = Session.settings
     val name by settings.name.collectAsState()
+    var text by remember(name) { mutableStateOf(name) }
     val sound by settings.sound.collectAsState()
     val haptics by settings.haptics.collectAsState()
     val portrait by settings.portrait.collectAsState()
@@ -82,10 +88,10 @@ fun SettingsScreen(onBack: () -> Unit, onCredits: () -> Unit) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             CapsLabel("Profile", color = Ink)
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Avatar(name.ifBlank { "?" }, Teal, 46.dp)
-                                InkField(name, { settings.setName(it) }, Modifier.weight(1f), maxLength = NameMax, height = 46.dp, placeholder = "Your name")
+                                Avatar(text.filter { it.isLetter() }.ifBlank { "?" }, Teal, 46.dp)
+                                InkField(text, { text = it; if (PlayerName.isValid(it)) settings.setName(it) }, Modifier.weight(1f), maxLength = PlayerName.TYPE_LIMIT, height = 46.dp, placeholder = "Your name")
                             }
-                            Text("Used for every room you host or join. Letters only, up to $NameMax.", fontFamily = Inter, fontSize = 11.sp, color = Muted)
+                            if (PlayerName.problem(text) != null) NameHint(text) else Text("Used for every room you host or join. Letters only, up to $NameMax.", fontFamily = Inter, fontSize = 11.sp, color = Muted)
                         }
                     }
                     Panel(Modifier.fillMaxWidth().weight(1f), padding = 14.dp) {
