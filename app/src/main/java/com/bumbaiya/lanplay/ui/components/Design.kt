@@ -68,7 +68,8 @@ object DI {
     val SpeakerOff = icon("speakerOff", 2.25f, "M4 9v6h4l5 4V5L8 9H4z", "M17 9l5 6M22 9l-5 6")
     val Leave = icon("leave", 2.5f, "M10 4H5v16h5M14 8l4 4-4 4M18 12H9")
     val Torch = icon("torch", 2.5f, "M13 3L5 14h6l-1 7 8-11h-6z")
-    val Spinner = icon("spinner", 2.5f, "M21 12a9 9 0 1 1-6.2-8.55")
+    /** A die showing five: reads as "random". */
+    val Spinner = icon("dice", 2.25f, rect(4f, 4f, 16f, 16f, 3f), circle(8.5f, 8.5f, 1f), circle(15.5f, 8.5f, 1f), circle(12f, 12f, 1f), circle(8.5f, 15.5f, 1f), circle(15.5f, 15.5f, 1f))
     val Book = icon("book", 2.25f, "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z", "M4 19V5M9 8h6")
     val Tour = icon("tour", 2.25f, "M7 5l12 7-12 7z", circle(12f, 12f, 10f))
     /** The LanPlay mark: radio waves, on a 32 grid. */
