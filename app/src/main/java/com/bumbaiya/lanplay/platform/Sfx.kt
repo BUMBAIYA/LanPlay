@@ -17,6 +17,7 @@ object Sfx {
     private var pool: SoundPool? = null
     private var down = 0
     private var up = 0
+    private var tick = 0
     private var ready = 0
 
     fun init(context: Context) {
@@ -30,13 +31,17 @@ object Sfx {
             val dir = context.cacheDir
             down = sp.load(wav(File(dir, "sfx_down.wav"), tone(0.045, 560.0, 420.0, 0.55, 38.0)).path, 1)
             up = sp.load(wav(File(dir, "sfx_up.wav"), tone(0.09, 980.0, 560.0, 0.6, 24.0)).path, 1)
+            tick = sp.load(wav(File(dir, "sfx_tick.wav"), tone(0.07, 1500.0, 1300.0, 0.6, 45.0)).path, 1)
         }
     }
 
     private fun enabled() = runCatching { Session.settings.sound.value }.getOrDefault(true)
 
-    fun down() { if (enabled() && ready >= 2) pool?.play(down, 0.7f, 0.7f, 1, 0, 1f) }
-    fun up() { if (enabled() && ready >= 2) pool?.play(up, 0.8f, 0.8f, 1, 0, 1f) }
+    fun down() { if (enabled() && ready >= 3) pool?.play(down, 0.7f, 0.7f, 1, 0, 1f) }
+    fun up() { if (enabled() && ready >= 3) pool?.play(up, 0.8f, 0.8f, 1, 0, 1f) }
+
+    /** The last-seconds clock tick. */
+    fun tick() { if (enabled() && ready >= 3) pool?.play(tick, 0.9f, 0.9f, 1, 0, 1f) }
 
     private const val RATE = 22050
 

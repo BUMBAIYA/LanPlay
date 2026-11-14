@@ -37,6 +37,7 @@ import com.bumbaiya.lanplay.game.combinemaths.RowSlot
 import com.bumbaiya.lanplay.net.GameClient
 import com.bumbaiya.lanplay.platform.Feedback
 import com.bumbaiya.lanplay.platform.Session
+import com.bumbaiya.lanplay.platform.Sfx
 import com.bumbaiya.lanplay.ui.components.*
 import com.bumbaiya.lanplay.ui.game.*
 import com.bumbaiya.lanplay.ui.theme.*
@@ -146,6 +147,7 @@ private fun TableHeader(state: GameState, phase: Phase, now: Long, myId: String,
             val myTurn = phase.currentId == myId
             val total = state.settings.turnSeconds.coerceAtLeast(1)
             val secs = ((phase.turnEndsAt - now) / 1000 + 1).toInt().coerceIn(0, total)
+            LaunchedEffect(secs, myTurn) { if (myTurn && secs in 1..5) Sfx.tick() }
             Chip(if (myTurn) "Your turn" else (state.player(phase.currentId)?.name ?: "") + "'s turn", fill = if (myTurn) Teal else Sand, modifier = if (myTurn) Modifier.pulse() else Modifier)
             TimerRing(secs, total, Rose, 40.dp)
         }
